@@ -120,9 +120,11 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
 test('mobile Cloudflare UI preserves navigation, editor interaction and width', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Mobile-only responsive verification.')
   await authenticate(page)
+  await page.evaluate(() => localStorage.setItem('tapledger-theme', 'dark'))
+  await page.reload()
   await page.goto('/transactions')
   await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible()
-  expect(await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }))).toEqual({ client: 390, scroll: 390 })
+  expect(await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }))).toEqual({ client: 402, scroll: 402 })
   await page.getByRole('button', { name: 'Add transaction' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.getByRole('button', { name: 'More information' }).click()
@@ -140,9 +142,29 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   }))
   expect(dateFields).toHaveLength(3)
   expect(dateFields[0].top).toBeLessThan(dateFields[1].top)
-  expect(Math.round(dateFields[1].top)).toBe(Math.round(dateFields[2].top))
-  expect(dateFields[1].right).toBeLessThanOrEqual(dateFields[2].left)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+  expect(dateFields[1].top).toBeLessThan(dateFields[2].top)
+  for (const field of dateFields) {
+    expect(field.left).toBeGreaterThanOrEqual(0)
+    expect(field.right).toBeLessThanOrEqual(402)
+  }
+  const dateInputs = await page.locator('.date-range input, .date-range select').evaluateAll((inputs) => inputs.map((input) => {
+    const rect = input.getBoundingClientRect()
+    return { left: rect.left, right: rect.right, width: rect.width }
+  }))
+  expect(dateInputs).toHaveLength(3)
+  for (const input of dateInputs) {
+    expect(input.left).toBeGreaterThanOrEqual(0)
+    expect(input.right).toBeLessThanOrEqual(402)
+    expect(input.width).toBeGreaterThan(0)
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(402)
+  const pageBackgrounds = await page.evaluate(() => ({
+    theme: document.documentElement.dataset.theme,
+    root: getComputedStyle(document.documentElement).backgroundColor,
+    body: getComputedStyle(document.body).backgroundColor,
+  }))
+  expect(pageBackgrounds.theme).toBe('dark')
+  expect(pageBackgrounds.root).toBe(pageBackgrounds.body)
 
   await page.goto('/settings')
   await expect(page.locator('details.setting-card[open]')).toHaveCount(0)
