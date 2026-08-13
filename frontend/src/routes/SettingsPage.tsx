@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Archive, ChevronDown, CreditCard, Database, Download, KeyRound, LogOut, Plus, Server, ShieldCheck, Tags, UploadCloud, Workflow } from 'lucide-react'
+import { Archive, ChevronDown, CreditCard, Database, Download, KeyRound, LogOut, Moon, Plus, Server, ShieldCheck, Sun, Tags, UploadCloud, Workflow } from 'lucide-react'
 import { useAuth } from '../app/AuthProvider'
+import { useTheme } from '../app/ThemeProvider'
 import { api } from '../lib/api'
 import { formatDateTime } from '../lib/format'
 import { readPendingTransactions, removePendingTransaction } from '../lib/pendingQueue'
@@ -10,6 +11,7 @@ import { useLocale, type Language } from '../app/LocaleProvider'
 
 export function SettingsPage() {
   const { user, csrfToken, setAuthenticated, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const { t, language, locale, setLanguage, categoryLabel, methodTypeLabel, matchTypeLabel } = useLocale()
   const queryClient = useQueryClient()
   const [categoryName, setCategoryName] = useState('')
@@ -133,6 +135,13 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard icon={Tags} title={t('preferences')} description={t('preferencesDescription')}>
+          <div className="preference-field mobile-theme-preference">
+            <span>{t('colorTheme')}</span>
+            <div className="theme-switch preference-theme" role="group" aria-label={t('colorTheme')}>
+              <button type="button" className={theme === 'light' ? 'selected' : ''} aria-pressed={theme === 'light'} onClick={() => setTheme('light')}><Sun /><span>{t('lightMode')}</span></button>
+              <button type="button" className={theme === 'dark' ? 'selected' : ''} aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}><Moon /><span>{t('darkMode')}</span></button>
+            </div>
+          </div>
           <label className="preference-field"><span>{t('language')}</span><select value={language} onChange={(event) => setLanguage(event.target.value as Language)}><option value="auto">{t('followBrowser')}</option><option value="en">{t('english')}</option><option value="zh-CN">{t('simplifiedChinese')}</option><option value="zh-TW">{t('traditionalChinese')}</option></select></label>
           <form className="inline-form preference-nickname" onSubmit={(event) => { event.preventDefault(); updateProfile.mutate() }}><label><span>{t('nickname')}</span><small>{t('nicknameDescription')}</small><input required maxLength={80} value={nickname} onChange={(event) => setNickname(event.target.value)} /></label><button className="secondary-button" disabled={updateProfile.isPending}>{updateProfile.isPending ? t('savingNickname') : t('saveNickname')}</button></form>
         </SettingCard>

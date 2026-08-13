@@ -75,6 +75,14 @@
 - 新增桌面回归测试验证目标卡片独立展开、相邻卡片仍收起且高度不变；iPhone 专项和桌面设置专项 Playwright 均通过。
 - 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、production build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health 和 SPA deep link smoke 全部通过。线上 CSS 已切换为 `index-BieqmI9l.css` 并确认包含本次布局规则。
 
+## 手机深浅色主题切换
+
+- 2026-08-13：手机版 Settings 的“偏好设置”新增颜色主题切换，直接复用桌面现有 ThemeProvider；浅色、深色选择立即生效并保存到本机，刷新后保持。
+- 控件仅在手机断点显示，沿用现有主题开关、Sun/Moon 图标和中英繁三语文案；桌面侧栏主题切换、导航和页面结构不变。
+- Browser 复核确认设置页身份、偏好卡片和控制台健康；浏览器连接不支持移动视口截图，因此使用项目现有 iPhone 16 Pro WebKit `402 × 874` 补充精确验证。
+- iPhone 专项 Playwright 1/1 通过；实测深色与浅色状态的 `clientWidth/scrollWidth` 均为 `402/402`，刷新后主题持久化，交互阶段无控制台 error 或 warning。
+- 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health、SPA deep link 通过。线上 CSS `index-BnW11hX8.css` 和 Settings 代码块已确认包含本次主题控件与状态逻辑。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。

@@ -88,3 +88,11 @@
 - 桌面 Settings 的两个并排卡片并未同时具有 `open` 属性。原因是 CSS Grid 默认把同一行两个网格项拉伸到相同高度，使收起卡片的外框看起来也被展开；`.settings-grid` 现使用 `align-items: start`，每张卡片保持自己的真实高度。
 - 浏览器复核中展开 Automation 时其高度为 `310px`，Categories 与 Payment methods 均保持收起状态和 `100px` 高；新增桌面 E2E 依次展开 Automation 与 Categories，断言任一时刻只有一个目标卡片为 `open`，相邻收起卡片高度不变。
 - Cloudflare 再部署后，线上入口引用新 CSS `index-BieqmI9l.css`；该文件已核验包含设置网格 `align-items: start`、手机两列日期布局、`50dvw - 25px` 日期宽度、关闭系统外观和自定义选择箭头。远程首页与 health 均返回 `200`，health 版本为 `0.2.0`。
+
+## 2026-08-13 手机深浅色切换复核
+
+- 手机 Settings 的“偏好设置”卡片新增颜色主题控件，直接复用现有 `ThemeProvider` 和 `tapledger-theme` 本地持久化，不新增主题状态或改变桌面侧栏主题按钮。
+- 控件仅在 `720px` 及以下显示；浅色与深色按钮使用现有 Sun/Moon 图标、主题色、边框和选中状态，并提供本地化可见文字与 `aria-pressed` 状态。
+- iPhone 16 Pro WebKit `402 × 874` 实测：深色切换为浅色后根节点 `data-theme` 从 `dark` 变为 `light`，刷新后仍为 `light`；两种状态下 `clientWidth/scrollWidth` 均为 `402/402`，控制台无 error 或 warning。
+- 截图证据保存在被 Git 忽略的 `frontend/test-results/mobile-theme-dark.png` 与 `frontend/test-results/mobile-theme-light.png`，未将当前本地实例数据发布到公共仓库。
+- Cloudflare 部署后线上 CSS 已切换为 `index-BnW11hX8.css`，Settings 代码块返回 `200`；远程文件已核验包含 `mobile-theme-preference`、`aria-pressed` 与主题 setter。远程首页、health 和 SPA deep link smoke 通过。

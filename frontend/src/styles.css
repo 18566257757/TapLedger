@@ -254,6 +254,9 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
 .healthy { color: var(--positive); }
 .preference-field { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
 .preference-field select { min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--text); background: var(--surface); }
+.mobile-theme-preference { display: none; }
+.preference-theme button { grid-template-columns: auto auto; gap: 8px; padding: 0 12px; }
+.preference-theme button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .preference-nickname { align-items: end; }
 .preference-nickname label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
 .preference-nickname label > span { color: var(--text); font-size: 13px; font-weight: 650; }
@@ -350,6 +353,7 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
 @media (max-width: 720px) {
   :root, body { background: var(--canvas); }
   .sidebar { display: none; }
+  .mobile-theme-preference { display: grid; }
   .main-canvas { margin-left: 0; padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
   .mobile-nav { position: fixed; z-index: 50; inset: auto 0 0; height: calc(66px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom); background: color-mix(in srgb, var(--surface) 92%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(18px); }
   .mobile-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--faint); text-decoration: none; font-size: 10px; }
