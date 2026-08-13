@@ -100,27 +100,31 @@ function assign(record: JsonRecord, key: string, value: unknown): void {
  */
 export function adaptShortcutPayload(input: unknown): unknown {
   if (!isRecord(input)) return input
-  const adapted: JsonRecord = { ...input }
-  const rawAmount = first(input, 'amount', ['金额', '金額'])
-  const rawLocation = first(input, 'location_name', ['位置名称', '位置名稱', '位置', '地点', '地點'])
+  const nested = first(input, 'transaction', [
+    'transaction_info', 'transactionInfo', '交易信息', '交易資訊', '交易资料', '交易資料',
+  ])
+  const payload: JsonRecord = isRecord(nested) ? { ...nested, ...input } : input
+  const adapted: JsonRecord = { ...payload }
+  const rawAmount = first(payload, 'amount', ['金额', '金額'])
+  const rawLocation = first(payload, 'location_name', ['位置名称', '位置名稱', '位置', '地点', '地點'])
   const location = isRecord(rawLocation) ? rawLocation : undefined
 
-  const version = first(input, 'schema_version', ['版本', '架构版本', '架構版本'])
+  const version = first(payload, 'schema_version', ['版本', '架构版本', '架構版本'])
   const normalizedVersion = version === '1' ? 1 : version
   assign(adapted, 'schema_version', normalizedVersion)
-  assign(adapted, 'client_event_id', text(first(input, 'client_event_id', [
+  assign(adapted, 'client_event_id', text(first(payload, 'client_event_id', [
     '事件ID', '事件 ID', '客户端事件ID', '客户端事件 ID', '客戶端事件ID', '客戶端事件 ID',
   ])))
   assign(adapted, 'amount', amount(rawAmount))
-  assign(adapted, 'currency', currency(first(input, 'currency', ['币种', '幣種', '货币', '貨幣'])) ?? currencyFromAmount(rawAmount))
-  assign(adapted, 'merchant', text(first(input, 'merchant', ['商户', '商戶', '商家'])))
-  assign(adapted, 'card', text(first(input, 'card', ['卡片', '卡片或凭证', '卡片或憑證', '付款卡片'])))
-  assign(adapted, 'transaction_date', dateTime(first(input, 'transaction_date', ['交易时间', '交易時間', '时间', '時間', '日期'])))
-  assign(adapted, 'captured_at', dateTime(first(input, 'captured_at', ['捕获时间', '擷取時間', '记录时间', '記錄時間'])))
-  assign(adapted, 'purpose', text(first(input, 'purpose', ['交易名称', '交易名稱', '用途', '目的'])))
+  assign(adapted, 'currency', currency(first(payload, 'currency', ['币种', '幣種', '货币', '貨幣'])) ?? currencyFromAmount(rawAmount))
+  assign(adapted, 'merchant', text(first(payload, 'merchant', ['商户', '商戶', '商家'])))
+  assign(adapted, 'card', text(first(payload, 'card', ['卡片', '卡片或凭证', '卡片或憑證', '付款卡片'])))
+  assign(adapted, 'transaction_date', dateTime(first(payload, 'transaction_date', ['交易时间', '交易時間', '时间', '時間', '日期'])))
+  assign(adapted, 'captured_at', dateTime(first(payload, 'captured_at', ['捕获时间', '擷取時間', '记录时间', '記錄時間'])))
+  assign(adapted, 'purpose', text(first(payload, 'purpose', ['交易名称', '交易名稱', '用途', '目的'])))
   assign(adapted, 'location_name', text(rawLocation))
-  assign(adapted, 'latitude', coordinate(first(input, 'latitude', ['纬度', '緯度']) ?? (location ? first(location, 'latitude', ['Latitude', '纬度', '緯度']) : undefined)))
-  assign(adapted, 'longitude', coordinate(first(input, 'longitude', ['经度', '經度']) ?? (location ? first(location, 'longitude', ['Longitude', '经度', '經度']) : undefined)))
-  assign(adapted, 'source', source(first(input, 'source', ['来源', '來源'])))
+  assign(adapted, 'latitude', coordinate(first(payload, 'latitude', ['纬度', '緯度']) ?? (location ? first(location, 'latitude', ['Latitude', '纬度', '緯度']) : undefined)))
+  assign(adapted, 'longitude', coordinate(first(payload, 'longitude', ['经度', '經度']) ?? (location ? first(location, 'longitude', ['Longitude', '经度', '經度']) : undefined)))
+  assign(adapted, 'source', source(first(payload, 'source', ['来源', '來源'])))
   return adapted
 }

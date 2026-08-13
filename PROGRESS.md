@@ -83,6 +83,13 @@
 - iPhone 专项 Playwright 1/1 通过；实测深色与浅色状态的 `clientWidth/scrollWidth` 均为 `402/402`，刷新后主题持久化，交互阶段无控制台 error 或 warning。
 - 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health、SPA deep link 通过。线上 CSS `index-BnW11hX8.css` 和 Settings 代码块已确认包含本次主题控件与状态逻辑。
 
+## Shortcut 嵌套交易字典兼容
+
+- 2026-08-13：根据真实 iPhone Shortcuts 返回的 `amount: Invalid input`，确认现有请求把字段放在顶层 `交易信息` 字典中；旧 adapter 只读取请求顶层，因此金额未进入 schema，交易没有写入 D1。
+- Shortcut adapter 现支持解包一层 `交易信息`、`交易資訊`、`交易资料`、`交易資料`、`transaction`、`transaction_info` 或 `transactionInfo` 对象；标准顶层字段仍优先，未知深层结构不会递归展开。
+- Worker 集成测试使用与真机相同的 `交易信息 → 字典` 结构，验证 `HK$10.25`、商户、用途、卡片、GMT+8 时间和多行位置均正确进入统一导入管线；同时验证顶层 `currency` 优先于嵌套 `币种`。Worker integration 6/6 通过。
+- 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health 与 SPA deep link smoke 通过。远程验证没有使用或写入用户真实交易，也没有读取 Shortcut Token。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。

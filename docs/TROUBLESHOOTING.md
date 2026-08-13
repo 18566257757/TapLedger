@@ -29,3 +29,5 @@ npm run wrangler -- d1 migrations list DB --remote --config wrangler.instance.js
 在 Settings 轮换 token，把新值更新到 iPhone Authorization header。503 表示尚未配置 token；401 表示缺失、错误或已轮换。不要把 token 放 URL。
 
 如果响应包含 `client_event_id: Invalid input; amount: Invalid input`，说明旧 Worker 尚未支持中文字典键，或部署尚未更新。当前版本兼容 `事件ID`、`金额`、`币种`、`商户`、`交易名称`、`卡片`、`时间` 和 `位置`；金额可以直接使用 Shortcuts 的数字“数量”。
+
+如果 Shortcuts 的请求体显示“`交易信息` → `字典`”，当前 Worker 会自动解包这一层。部署更新后仍出现 `amount: Invalid input` 时，检查嵌套字典内部是否确实存在 `金额` 或 `amount`，并确认请求体类型是 JSON、字典不是提前转换成普通文本。

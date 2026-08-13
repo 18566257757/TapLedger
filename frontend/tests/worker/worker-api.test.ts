@@ -266,9 +266,29 @@ describe('TapLedger Worker API with D1', () => {
     })
     expect(realWalletFormat.status, await realWalletFormat.clone().text()).toBe(200)
 
+    const nestedShortcutFormat = await request('/api/v1/shortcut/transactions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        currency: 'HKD',
+        交易信息: {
+          事件ID: 'localized-nested-wallet-format',
+          金额: 'HK$10.25',
+          币种: 'CNY',
+          商户: '嵌套便利店测试',
+          交易名称: '嵌套钱包交易',
+          卡片: '嵌套测试钱包卡片',
+          时间: '2026/8/13 GMT+8 15:20:00',
+          位置: '嵌套测试地区\n嵌套测试道路',
+        },
+      }),
+    })
+    expect(nestedShortcutFormat.status, await nestedShortcutFormat.clone().text()).toBe(200)
+    expect(await nestedShortcutFormat.json()).toMatchObject({ success: true, duplicate: false })
+
     const list = await request('/api/v1/transactions', {}, state)
     const body = await list.json<{ total: number; items: Array<Record<string, unknown>> }>()
-    expect(body.total).toBe(2)
+    expect(body.total).toBe(3)
     const generated = body.items.find((item) => String(item.client_event_id).startsWith('shortcut-generated-'))
     expect(generated).toMatchObject({
       amount: '8.00',
@@ -287,6 +307,15 @@ describe('TapLedger Worker API with D1', () => {
       currency: 'HKD',
       transaction_date: '2026-08-13T07:06:00.000Z',
       location_name: '测试地区\n测试道路 74-76 号',
+    })
+    expect(body.items.find((item) => item.client_event_id === 'localized-nested-wallet-format')).toMatchObject({
+      amount: '10.25',
+      currency: 'HKD',
+      merchant_raw: '嵌套便利店测试',
+      card_raw_name: '嵌套测试钱包卡片',
+      purpose: '嵌套钱包交易',
+      transaction_date: '2026-08-13T07:20:00.000Z',
+      location_name: '嵌套测试地区\n嵌套测试道路',
     })
   }, 30_000)
 
