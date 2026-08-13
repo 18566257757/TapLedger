@@ -142,7 +142,8 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   }))
   expect(dateFields).toHaveLength(3)
   expect(dateFields[0].top).toBeLessThan(dateFields[1].top)
-  expect(dateFields[1].top).toBeLessThan(dateFields[2].top)
+  expect(Math.round(dateFields[1].top)).toBe(Math.round(dateFields[2].top))
+  expect(dateFields[1].right).toBeLessThanOrEqual(dateFields[2].left)
   for (const field of dateFields) {
     expect(field.left).toBeGreaterThanOrEqual(0)
     expect(field.right).toBeLessThanOrEqual(402)
@@ -150,7 +151,7 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   const dateInputs = await page.locator('.date-range input, .date-range select').evaluateAll((inputs) => inputs.map((input) => {
     const rect = input.getBoundingClientRect()
     const style = getComputedStyle(input)
-    return { left: rect.left, right: rect.right, width: rect.width, appearance: style.appearance, webkitAppearance: style.webkitAppearance, type: input.getAttribute('type') }
+    return { left: rect.left, right: rect.right, width: rect.width, height: rect.height, appearance: style.appearance, webkitAppearance: style.webkitAppearance, type: input.getAttribute('type') }
   }))
   expect(dateInputs).toHaveLength(3)
   for (const input of dateInputs) {
@@ -158,8 +159,12 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
     expect(input.right).toBeLessThanOrEqual(402)
     expect(input.width).toBeGreaterThan(0)
   }
-  expect(dateInputs[1].width).toBe(dateInputs[0].width)
-  expect(dateInputs[2].width).toBe(dateInputs[0].width)
+  expect(dateInputs[0].appearance).toBe('none')
+  expect(dateInputs[0].webkitAppearance).toBe('none')
+  expect(Math.round(dateInputs[1].width)).toBe(176)
+  expect(Math.round(dateInputs[2].width)).toBe(176)
+  expect(Math.round(dateInputs[0].height)).toBe(Math.round(dateInputs[1].height))
+  expect(Math.round(dateInputs[0].height)).toBe(Math.round(dateInputs[2].height))
   expect(dateInputs[1].appearance).toBe('none')
   expect(dateInputs[2].appearance).toBe('none')
   expect(dateInputs[1].webkitAppearance).toBe('none')
@@ -170,10 +175,11 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
     const rect = card.getBoundingClientRect()
     return { left: rect.left, right: rect.right }
   })
+  expect(Math.round(dateInputs[0].left)).toBe(Math.round(metricCard.left))
+  expect(Math.round(dateInputs[0].right)).toBe(Math.round(metricCard.right))
   expect(Math.round(dateInputs[1].left)).toBe(Math.round(metricCard.left))
-  expect(Math.round(dateInputs[1].right)).toBe(Math.round(metricCard.right))
-  expect(Math.round(dateInputs[2].left)).toBe(Math.round(metricCard.left))
   expect(Math.round(dateInputs[2].right)).toBe(Math.round(metricCard.right))
+  expect(Math.round(dateInputs[2].left - dateInputs[1].right)).toBe(10)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(402)
   const pageBackgrounds = await page.evaluate(() => ({
     theme: document.documentElement.dataset.theme,
@@ -189,4 +195,29 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   await expect(automationCard.getByRole('button', { name: 'Rotate Shortcut token' })).toBeVisible()
   await automationCard.locator(':scope > summary').click()
   await expect(automationCard.getByRole('button', { name: 'Rotate Shortcut token' })).toBeHidden()
+})
+
+test('desktop setting cards preserve independent collapsed height', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop-only two-column settings verification.')
+  await authenticate(page)
+  await page.goto('/settings')
+  const automationCard = page.locator('details.setting-card').filter({ has: page.getByRole('heading', { name: 'Automation', exact: true }) })
+  const categoriesCard = page.locator('details.setting-card').filter({ has: page.getByRole('heading', { name: 'Categories', exact: true }) })
+  const initialAutomationHeight = (await automationCard.boundingBox())?.height ?? 0
+  const initialCategoriesHeight = (await categoriesCard.boundingBox())?.height ?? 0
+
+  await automationCard.locator(':scope > summary').click()
+  await expect(automationCard).toHaveAttribute('open', '')
+  await expect(categoriesCard).not.toHaveAttribute('open', '')
+  await expect(page.locator('details.setting-card[open]')).toHaveCount(1)
+  expect((await automationCard.boundingBox())?.height ?? 0).toBeGreaterThan(initialAutomationHeight)
+  expect(Math.round((await categoriesCard.boundingBox())?.height ?? 0)).toBe(Math.round(initialCategoriesHeight))
+
+  await automationCard.locator(':scope > summary').click()
+  await categoriesCard.locator(':scope > summary').click()
+  await expect(automationCard).not.toHaveAttribute('open', '')
+  await expect(categoriesCard).toHaveAttribute('open', '')
+  await expect(page.locator('details.setting-card[open]')).toHaveCount(1)
+  expect(Math.round((await automationCard.boundingBox())?.height ?? 0)).toBe(Math.round(initialAutomationHeight))
+  expect((await categoriesCard.boundingBox())?.height ?? 0).toBeGreaterThan(initialCategoriesHeight)
 })

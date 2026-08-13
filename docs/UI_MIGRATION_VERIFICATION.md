@@ -79,3 +79,12 @@
 - 新增回归断言要求两个日期输入与下方指标卡片具有完全相同的左右边界，同时验证 `type="date"`、`-webkit-appearance: none`、三控件等宽及 `clientWidth/scrollWidth = 402/402`。
 - 本地 `402 × 874` WebKit 实测：周期、开始、结束和指标卡片均为 `left 20px / right 382px / width 362px`；页面截图未见裁切或横向溢出。
 - Cloudflare 再部署成功后，远程 HTML 已从旧 CSS `index-CzFpYpnw.css` 切换为新 CSS `index-BeO4q5lz.css`；线上文件实际包含 `100dvw - 40px` 与 `appearance: none`，远程 health、首页和 SPA deep link 通过。真实 iPhone 最终结果仍以用户设备刷新后的截图为准。
+
+### 紧凑日期布局与桌面设置卡片复核
+
+- 用户在 17:24 的真机截图确认单列日期控件虽然解决了横向溢出，但纵向占用过大。手机布局现调整为“周期独占第一行、开始与结束并排第二行”，保留字段、顺序、数据逻辑和页面视觉语言。
+- 三个控件统一为 `46px` 高；周期选择器关闭系统外观并使用站内细线箭头，两个日期输入继续保持 `type="date"`，同时关闭 WebKit 的原生尺寸接管。
+- iPhone 16 Pro WebKit `402 × 874` 实测：页面 `clientWidth/scrollWidth = 402/402`；周期为 `left/right = 20/382px`、宽 `362px`，开始与结束分别为 `20–196px` 和 `206–382px`、各宽 `176px`，间距 `10px`，三者高度均为 `46px`，下方指标卡片仍为 `20–382px`。
+- 桌面 Settings 的两个并排卡片并未同时具有 `open` 属性。原因是 CSS Grid 默认把同一行两个网格项拉伸到相同高度，使收起卡片的外框看起来也被展开；`.settings-grid` 现使用 `align-items: start`，每张卡片保持自己的真实高度。
+- 浏览器复核中展开 Automation 时其高度为 `310px`，Categories 与 Payment methods 均保持收起状态和 `100px` 高；新增桌面 E2E 依次展开 Automation 与 Categories，断言任一时刻只有一个目标卡片为 `open`，相邻收起卡片高度不变。
+- Cloudflare 再部署后，线上入口引用新 CSS `index-BieqmI9l.css`；该文件已核验包含设置网格 `align-items: start`、手机两列日期布局、`50dvw - 25px` 日期宽度、关闭系统外观和自定义选择箭头。远程首页与 health 均返回 `200`，health 版本为 `0.2.0`。

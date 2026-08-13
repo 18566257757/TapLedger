@@ -218,7 +218,7 @@ svg { width: 19px; height: 19px; stroke-width: 1.8; }
 .review-facts strong { font-size: 13px; }
 .review-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 330px; }
 
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 20px; }
 .setting-card { padding: 25px; }
 .setting-summary { display: flex; gap: 13px; align-items: flex-start; list-style: none; cursor: pointer; }
 .setting-summary::-webkit-details-marker { display: none; }
@@ -412,15 +412,32 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .filter-bar { display: none; grid-template-columns: 1fr; padding: 10px; }
   .filter-bar.filters-open { display: grid; }
   .filter-bar .search-control { grid-column: auto; }
-  .date-range { width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
-  .date-range .period-field { grid-column: auto; }
+  .date-range { width: 100%; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .date-range .period-field { position: relative; grid-column: 1 / -1; }
   .date-range label { width: 100%; min-width: 0; max-width: 100%; }
   .date-range input, .date-range select { display: block; width: 100%; min-width: 0; max-width: 100%; }
+  .date-range select {
+    padding-right: 36px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .date-range .period-field::after {
+    content: "";
+    position: absolute;
+    right: 16px;
+    bottom: 19px;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
   .date-range input[type="date"] {
-    width: calc(100vw - 40px);
-    width: calc(100dvw - 40px);
-    max-width: calc(100vw - 40px);
-    max-width: calc(100dvw - 40px);
+    width: calc(50vw - 25px);
+    width: calc(50dvw - 25px);
+    max-width: calc(50vw - 25px);
+    max-width: calc(50dvw - 25px);
     -webkit-appearance: none;
     appearance: none;
     text-align: center;

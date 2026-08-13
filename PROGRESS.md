@@ -67,6 +67,14 @@
 - 新增测试直接比较日期输入和指标卡片左右边界。本地 iPhone 16 Pro WebKit 实测四者均为 `left/right = 20/382px`、宽 `362px`，页面 `clientWidth/scrollWidth = 402/402`。
 - Cloudflare 自动部署成功；线上入口已确认引用新 CSS `index-BeO4q5lz.css`，该文件实际包含视口宽度限制和 WebKit 外观修复。远程首页、D1 health、SPA deep link、页面内容、控制台与登录页交互复核通过；真实设备结果待用户刷新后确认。
 
+## 紧凑手机日期控件与桌面设置卡片修复
+
+- 2026-08-13：根据 17:24 的 iPhone 16 Pro 真机反馈，将单列日期区优化为周期独占第一行、开始和结束并排第二行；三控件统一 `46px` 高，并保留 WebKit 横向溢出保护。
+- 本地 WebKit `402 × 874` 实测页面 `clientWidth/scrollWidth = 402/402`；周期宽 `362px`，开始和结束各宽 `176px`、间距 `10px`，所有左右边界与下方内容卡片对齐，未复现白边或裁切。
+- 桌面 Settings 的“并排卡片一起打开”是 Grid 默认等高拉伸造成的视觉错觉，不是多个 `details` 同时拥有 `open` 属性。设置网格现顶部对齐，展开一张卡片不会再改变相邻收起卡片的高度。
+- 新增桌面回归测试验证目标卡片独立展开、相邻卡片仍收起且高度不变；iPhone 专项和桌面设置专项 Playwright 均通过。
+- 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、production build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health 和 SPA deep link smoke 全部通过。线上 CSS 已切换为 `index-BieqmI9l.css` 并确认包含本次布局规则。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。
