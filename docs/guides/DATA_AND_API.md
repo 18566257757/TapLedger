@@ -89,6 +89,8 @@ POST /admin/restore
 
 为适配中文系统语言的 iPhone Shortcuts，Worker 的请求 adapter 还接受对应中文键：`版本`、`事件ID`、`金额`、`币种`、`商户`、`卡片`、`时间`、`捕获时间`、`交易名称`、`位置`、`纬度`、`经度`、`来源`（并兼容繁体写法）。英文标准键存在时优先使用英文键。Shortcut 传入的有限非负数字金额必须在 adapter 中转为十进制字符串，再进入统一金额解析；不得把 JavaScript 浮点值直接持久化。
 
+中文 Wallet 实际输出的金额文本（例如 `HK$9.00`）和时间文本（例如 `2026年8月13日 15:06`、`2026/9/15 GMT+8 09:41:00`、`2026-09-15T09:41:00+08:00`）必须经过专用解析。带 GMT/ISO 偏移的时间使用显式偏移；无时区偏移的中文时间按当前实例 `AppSetting.timezone` 转为 UTC ISO 时间，不得按 Worker 运行区或固定服务器时区猜测；多行位置文本需原样安全保存。
+
 `client_event_id` 仍应由 Shortcut 主动生成 UUID。为了兼容无法方便加入 UUID 动作的现有中文 Shortcut，缺失时 Worker 可根据金额、币种、商户、卡片、交易时间和用途生成不含原文的稳定 SHA-256 派生 ID；数据库唯一约束与短时间重复检测仍必须生效。
 
 相同 `client_event_id` 重发必须返回既有 transaction ID 和 `already_processed`，不得创建第二笔。响应不得返回 Shortcut token。

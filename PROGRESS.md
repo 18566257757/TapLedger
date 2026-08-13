@@ -20,9 +20,9 @@
 | --- | --- |
 | 本地 D1 migrations | 无待执行迁移 |
 | lint / typecheck | 通过 |
-| unit | 5 个文件，19/19 通过 |
+| unit | 6 个文件，21/21 通过 |
 | Worker integration | 1 个文件，6/6 通过；含中文 Shortcut 字段、数字金额、位置对象、派生事件 ID 与幂等重试 |
-| frontend tests | 5 个文件，19/19 通过 |
+| frontend tests | 6 个文件，21/21 通过 |
 | 本地 Playwright 核心流程 | 4/4 通过；按项目/视觉证据用途有意跳过 6 项 |
 | 远程 Playwright | 视觉捕获 2/2；核心桌面/手机 2/2；额外 smoke 3/3 通过。首次远程运行发现并修复商户末尾数字误截断 |
 | production build | Worker 141 modules、client 2440 modules；成功 |
@@ -34,7 +34,8 @@
 
 - 2026-08-13：新增独立 Shortcut payload adapter，兼容简体/繁体的金额、币种、商户、交易名称、卡片、时间、位置、事件 ID 等键；标准英文键仍优先。
 - Shortcuts 数字金额在持久化前转换为十进制文本；位置对象只提取名称和有效经纬度；缺少事件 ID 时根据核心交易字段生成不含原文的 SHA-256 派生 ID。
-- 本地 lint、typecheck、unit 19/19、Worker integration 6/6、frontend 19/19、build 和 publication check 均通过。重新部署后远程首页、D1 health 与 SPA deep link smoke 通过；未轮换生产 Token，未写入或删除生产交易。
+- 真实 Wallet 时间兼容 `2026年8月13日 15:06`、`2026/9/15 GMT+8 09:41:00` 与 `2026-09-15T09:41:00+08:00`；带偏移格式直接换算，无偏移中文格式使用实例时区。
+- 本地 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 和 publication check 均通过。重新部署后远程首页、D1 health 与 SPA deep link smoke 通过；未轮换生产 Token，未写入或删除生产交易。
 
 ## 最终状态与尚未完成
 

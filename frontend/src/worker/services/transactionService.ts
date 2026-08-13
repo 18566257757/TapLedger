@@ -80,9 +80,10 @@ export class TransactionService {
   }
 
   async ingestShortcut(payload: ShortcutTransactionInput, source: TransactionSource = 'wallet_shortcut', requestIdentity = 'shortcut'): Promise<IngestionResult> {
-    const settings = await this.database.prepare('SELECT base_currency FROM app_settings WHERE id = 1').first<{ base_currency: string }>()
-    const capturedAt = normalizeDateTime(payload.captured_at)
-    const transactionDate = normalizeDateTime(payload.transaction_date, capturedAt)
+    const settings = await this.database.prepare('SELECT base_currency, timezone FROM app_settings WHERE id = 1').first<{ base_currency: string; timezone: string }>()
+    const timeZone = settings?.timezone ?? 'UTC'
+    const capturedAt = normalizeDateTime(payload.captured_at, nowIso(), timeZone)
+    const transactionDate = normalizeDateTime(payload.transaction_date, capturedAt, timeZone)
     const generatedIdentity = JSON.stringify([
       payload.amount,
       payload.currency ?? settings?.base_currency ?? 'HKD',

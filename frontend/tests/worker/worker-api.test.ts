@@ -246,10 +246,26 @@ describe('TapLedger Worker API with D1', () => {
     expect(await created.json()).toMatchObject({ success: true, duplicate: false, review_status: 'missing_information' })
     expect(await (await sendLocalized()).json()).toMatchObject({ success: true, duplicate: true, result: 'already_processed' })
 
+    const realWalletFormat = await request('/api/v1/shortcut/transactions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        事件ID: 'localized-real-wallet-format',
+        金额: 'HK$9.00',
+        商户: '便利店测试',
+        交易名称: '便利店测试',
+        卡片: '测试钱包卡片',
+        时间: '2026/8/13 GMT+8 15:06:00',
+        位置: '测试地区\n测试道路 74-76 号',
+      }),
+    })
+    expect(realWalletFormat.status, await realWalletFormat.clone().text()).toBe(200)
+
     const list = await request('/api/v1/transactions', {}, state)
     const body = await list.json<{ total: number; items: Array<Record<string, unknown>> }>()
-    expect(body.total).toBe(1)
-    expect(body.items[0]).toMatchObject({
+    expect(body.total).toBe(2)
+    const generated = body.items.find((item) => String(item.client_event_id).startsWith('shortcut-generated-'))
+    expect(generated).toMatchObject({
       amount: '8.00',
       currency: 'HKD',
       merchant_raw: '7-Eleven, HK (0746)',
@@ -260,7 +276,13 @@ describe('TapLedger Worker API with D1', () => {
       longitude: '114.17',
       source: 'wallet_shortcut',
     })
-    expect(String(body.items[0].client_event_id)).toMatch(/^shortcut-generated-[0-9a-f]{40}$/u)
+    expect(String(generated?.client_event_id)).toMatch(/^shortcut-generated-[0-9a-f]{40}$/u)
+    expect(body.items.find((item) => item.client_event_id === 'localized-real-wallet-format')).toMatchObject({
+      amount: '9.00',
+      currency: 'HKD',
+      transaction_date: '2026-08-13T07:06:00.000Z',
+      location_name: '测试地区\n测试道路 74-76 号',
+    })
   }, 30_000)
 
   it('revokes other sessions after a password change and rejects expired sessions', async () => {

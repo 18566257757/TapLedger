@@ -1,9 +1,11 @@
 import { z } from 'zod'
 import { adaptShortcutPayload } from './adapters/shortcutPayload'
+import { isSupportedShortcutDateTime } from './utils/time'
 
 const nullableText = (maximum: number) => z.string().trim().max(maximum).nullable().optional()
 const identifier = z.string().trim().min(1).max(128)
 const dateTime = z.string().refine((value) => !Number.isNaN(new Date(value).getTime()), 'Invalid date-time value')
+const shortcutDateTime = z.string().refine(isSupportedShortcutDateTime, 'Invalid date-time value')
 const coordinate = z.union([z.string(), z.number()]).nullable().optional()
 
 export const setupSchema = z.object({
@@ -30,8 +32,8 @@ export const shortcutTransactionSchema = z.preprocess(adaptShortcutPayload, z.ob
   currency: z.string().trim().length(3).nullable().optional(),
   merchant: nullableText(500),
   card: nullableText(240),
-  transaction_date: dateTime.nullable().optional(),
-  captured_at: dateTime.nullable().optional(),
+  transaction_date: shortcutDateTime.nullable().optional(),
+  captured_at: shortcutDateTime.nullable().optional(),
   purpose: nullableText(240),
   location_name: nullableText(240),
   latitude: coordinate,
