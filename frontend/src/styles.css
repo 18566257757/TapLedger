@@ -416,6 +416,16 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .date-range .period-field { grid-column: auto; }
   .date-range label { width: 100%; min-width: 0; max-width: 100%; }
   .date-range input, .date-range select { display: block; width: 100%; min-width: 0; max-width: 100%; }
+  .date-range input[type="date"] {
+    width: calc(100vw - 40px);
+    width: calc(100dvw - 40px);
+    max-width: calc(100vw - 40px);
+    max-width: calc(100dvw - 40px);
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+  }
+  .date-range input[type="date"]::-webkit-date-and-time-value { text-align: center; }
   .page-heading:has(.date-range) { flex-direction: column; }
   .insights-grid, .settings-grid { gap: 14px; }
   .insight-card, .breakdown-card, .setting-card { padding: 20px; }

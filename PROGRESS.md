@@ -63,6 +63,9 @@
 - Playwright 手机项目从通用 `390px` 配置更新为明确的 WebKit `402 × 874`；专项断言覆盖控件边界、整页宽度与深色根背景一致性。
 - 本地 WebKit 实测 `clientWidth/scrollWidth = 402/402`，三个控件均为 `left/right = 20/382px`，页面无白边；lint、typecheck 和 iPhone 专项 Playwright 通过。
 - 生产 Worker 已重新部署到原 URL，远程 D1 migration、首页、health、SPA deep link 与部署 CSS 检查通过；生产公开登录页的 WebKit `402 × 874` 复核同样为 `clientWidth/scrollWidth = 402/402` 且根背景一致。生产密码与项目 E2E 测试密码不同，未重置密码或把无法登录的远程 Insights 误报为通过。
+- 17:10 真机复核显示白边已消失，但 iOS 原生日期外框仍越过内容区约 `20px`。补充修复把手机日期输入明确限制为 `100dvw - 40px`，关闭其 WebKit 原生外框尺寸接管，并保留 `type="date"` 与居中日期值。
+- 新增测试直接比较日期输入和指标卡片左右边界。本地 iPhone 16 Pro WebKit 实测四者均为 `left/right = 20/382px`、宽 `362px`，页面 `clientWidth/scrollWidth = 402/402`。
+- Cloudflare 自动部署成功；线上入口已确认引用新 CSS `index-BeO4q5lz.css`，该文件实际包含视口宽度限制和 WebKit 外观修复。远程首页、D1 health、SPA deep link、页面内容、控制台与登录页交互复核通过；真实设备结果待用户刷新后确认。
 
 ## 最终状态与尚未完成
 

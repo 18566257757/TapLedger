@@ -149,7 +149,8 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   }
   const dateInputs = await page.locator('.date-range input, .date-range select').evaluateAll((inputs) => inputs.map((input) => {
     const rect = input.getBoundingClientRect()
-    return { left: rect.left, right: rect.right, width: rect.width }
+    const style = getComputedStyle(input)
+    return { left: rect.left, right: rect.right, width: rect.width, appearance: style.appearance, webkitAppearance: style.webkitAppearance, type: input.getAttribute('type') }
   }))
   expect(dateInputs).toHaveLength(3)
   for (const input of dateInputs) {
@@ -157,6 +158,22 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
     expect(input.right).toBeLessThanOrEqual(402)
     expect(input.width).toBeGreaterThan(0)
   }
+  expect(dateInputs[1].width).toBe(dateInputs[0].width)
+  expect(dateInputs[2].width).toBe(dateInputs[0].width)
+  expect(dateInputs[1].appearance).toBe('none')
+  expect(dateInputs[2].appearance).toBe('none')
+  expect(dateInputs[1].webkitAppearance).toBe('none')
+  expect(dateInputs[2].webkitAppearance).toBe('none')
+  expect(dateInputs[1].type).toBe('date')
+  expect(dateInputs[2].type).toBe('date')
+  const metricCard = await page.locator('.metric-card').first().evaluate((card) => {
+    const rect = card.getBoundingClientRect()
+    return { left: rect.left, right: rect.right }
+  })
+  expect(Math.round(dateInputs[1].left)).toBe(Math.round(metricCard.left))
+  expect(Math.round(dateInputs[1].right)).toBe(Math.round(metricCard.right))
+  expect(Math.round(dateInputs[2].left)).toBe(Math.round(metricCard.left))
+  expect(Math.round(dateInputs[2].right)).toBe(Math.round(metricCard.right))
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(402)
   const pageBackgrounds = await page.evaluate(() => ({
     theme: document.documentElement.dataset.theme,

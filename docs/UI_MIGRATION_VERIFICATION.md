@@ -71,3 +71,11 @@
 - 交互复核：周期从“月”切换为“年”后值为 `year`，日期范围随之更新；当前页面控制台无 error 或 warning。
 - 生产部署后公开页面用 WebKit `402 × 874` 再测：`clientWidth/scrollWidth = 402/402`，根节点与 `body` 深色背景一致，首页、health、`/insights` SPA deep link 均返回成功；线上 CSS 已确认包含手机单列日期布局和根级横向溢出保护。
 - 生产实例使用用户自己的密码，项目 E2E 测试密码被正确拒绝；因此未冒充“远程已登录 Insights 截图”，也未重置或索取生产密码。日期控件的完整渲染证据来自与生产相同构建产物的本地 Worker/D1 WebKit 会话。
+
+### 真实 iOS 原生日期外框补充修复
+
+- 用户在 17:10 提供的第二张 iPhone 16 Pro 真机截图确认：页面与根背景已不再出现白边，三个字段也已分行，但 iOS 原生日期控件的可见外框仍比内容区多出约一个 `20px` 页面边距；自动化 WebKit 的普通盒模型尺寸未复现这层系统外观差异。
+- 手机端日期输入现明确使用 `100dvw - 40px`，与页面左右各 `20px` 的留白相匹配，并仅对两个 `type="date"` 输入关闭 WebKit 原生外框尺寸接管；日期值继续居中，元素类型仍为 `date`。
+- 新增回归断言要求两个日期输入与下方指标卡片具有完全相同的左右边界，同时验证 `type="date"`、`-webkit-appearance: none`、三控件等宽及 `clientWidth/scrollWidth = 402/402`。
+- 本地 `402 × 874` WebKit 实测：周期、开始、结束和指标卡片均为 `left 20px / right 382px / width 362px`；页面截图未见裁切或横向溢出。
+- Cloudflare 再部署成功后，远程 HTML 已从旧 CSS `index-CzFpYpnw.css` 切换为新 CSS `index-BeO4q5lz.css`；线上文件实际包含 `100dvw - 40px` 与 `appearance: none`，远程 health、首页和 SPA deep link 通过。真实 iPhone 最终结果仍以用户设备刷新后的截图为准。
