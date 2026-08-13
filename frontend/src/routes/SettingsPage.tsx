@@ -75,7 +75,7 @@ export function SettingsPage() {
       } catch { break }
     }
     setPending(readPendingTransactions())
-    setNotice(`${completed} offline transaction${completed === 1 ? '' : 's'} synced with server confirmation.`)
+    setNotice(`${completed} offline transaction${completed === 1 ? '' : 's'} synced with Cloud confirmation.`)
     await queryClient.invalidateQueries({ queryKey: ['transactions'] })
   }
 
@@ -113,10 +113,10 @@ export function SettingsPage() {
           <details className="danger-zone"><summary>Delete all financial data</summary><p>A verified backup is created first. Administrator and preferences are retained.</p><input type="password" autoComplete="current-password" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} placeholder="Administrator password" /><input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} placeholder="Type DELETE ALL DATA" /><button className="danger-button" disabled={deleteAll.isPending || deleteConfirmation !== 'DELETE ALL DATA' || !deletePassword} onClick={() => window.confirm('Permanently delete all financial data after creating a backup?') && deleteAll.mutate()}>Delete all data</button></details>
         </SettingCard>
 
-        <SettingCard icon={Server} title={t('serverStatus')} description="Live diagnostics for this Windows host.">
+        <SettingCard icon={Server} title={t('serverStatus')} description="Live diagnostics for this Cloudflare deployment.">
           <dl className="status-grid"><div><dt>Service</dt><dd className="healthy">{status.data?.service_health ?? 'Checking...'}</dd></div><div><dt>Database</dt><dd className="healthy">{status.data?.database_health ?? 'Checking...'}</dd></div><div><dt>Database size</dt><dd>{status.data ? `${(status.data.database_size / 1024).toFixed(1)} KB` : '—'}</dd></div><div><dt>Pending reviews</dt><dd>{status.data?.pending_reviews ?? '—'}</dd></div><div><dt>Last import</dt><dd>{status.data?.last_import ? formatDateTime(status.data.last_import) : 'None yet'}</dd></div><div><dt>Last backup</dt><dd>{status.data?.last_backup ?? 'None yet'}</dd></div><div><dt>Version / uptime</dt><dd>{status.data ? `${status.data.version} · ${Math.floor(status.data.uptime_seconds / 60)} min` : '—'}</dd></div></dl>
-          {status.data ? <div className="setting-detail"><span>Database path</span><code>{status.data.database_path}</code></div> : null}
-          {status.data?.tailscale_url ? <div className="setting-detail"><span>Private URL</span><code>{status.data.tailscale_url}</code></div> : <p className="muted-copy">Tailscale Serve is not configured yet. The local app remains available only on this computer.</p>}
+          {status.data ? <div className="setting-detail"><span>Database binding</span><code>{status.data.database_binding}</code></div> : null}
+          <p className="muted-copy">{status.data?.deployment_url ? `Deployment URL: ${status.data.deployment_url}` : 'Cloud deployment information is unavailable.'}</p>
         </SettingCard>
 
         <SettingCard icon={Tags} title={t('preferences')} description="Appearance and regional display settings.">

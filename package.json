@@ -1,0 +1,36 @@
+{
+  "name": "tapledger",
+  "private": true,
+  "version": "0.2.0",
+  "description": "A self-hosted personal ledger for Cloudflare Workers and D1.",
+  "scripts": {
+    "postinstall": "npm ci --prefix frontend --ignore-scripts",
+    "dev": "npm run dev --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix frontend",
+    "test": "npm run test --prefix frontend",
+    "test:unit": "npm run test:unit --prefix frontend",
+    "test:integration": "npm run test:integration --prefix frontend",
+    "test:frontend": "npm run test:frontend --prefix frontend",
+    "test:e2e": "npm run test:e2e --prefix frontend",
+    "visual:compare": "node scripts/compare-visuals.mjs",
+    "build": "npm run build --prefix frontend",
+    "wrangler": "node scripts/run-wrangler.mjs",
+    "db:migrate:local": "node scripts/run-wrangler.mjs d1 migrations apply DB --local --config wrangler.jsonc",
+    "db:migrations:list:local": "node scripts/run-wrangler.mjs d1 migrations list DB --local --config wrangler.jsonc",
+    "db:migrate:legacy": "node --no-warnings scripts/migrate-legacy-data.mjs",
+    "deploy": "npm run deploy:template --prefix frontend",
+    "deploy:current": "node scripts/deploy-current-user.mjs",
+    "publication:check": "node scripts/publication-check.mjs"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": {
+        "description": "Your private TapLedger D1 database. Cloudflare creates it automatically for template deployments."
+      }
+    }
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

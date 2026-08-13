@@ -1,0 +1,2 @@
+# TapLedger currently needs no deployment secret.
+# Passwords, sessions, and Shortcut token hashes are stored only in your D1 database.

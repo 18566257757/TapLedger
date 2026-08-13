@@ -1,0 +1,110 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const USERNAME = 'admin'
+const PASSWORD = 'TapLedger-E2E-Password!'
+
+async function authenticate(page: Page) {
+  await page.goto('/login')
+  const setup = page.getByRole('heading', { name: 'Set up your private ledger' })
+  const login = page.getByRole('heading', { name: 'Welcome back' })
+  await expect(setup.or(login)).toBeVisible()
+  await page.getByLabel('Username').fill(USERNAME)
+  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
+  await page.getByRole('button', { name: await setup.isVisible() ? 'Create administrator' : 'Sign in' }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening)|TapLedger/ }).first()).toBeVisible()
+}
+
+test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and logout', async ({ page, isMobile }) => {
+  test.setTimeout(90_000)
+  test.skip(isMobile, 'The complete mutation flow runs once in desktop Chromium; mobile layout has a focused test.')
+  await authenticate(page)
+  const reviewMerchant = `BROWSER REVIEW ${Math.random().toString(36).slice(2, 10).toUpperCase()}`
+
+  await page.goto('/transactions')
+  await page.getByRole('button', { name: 'Add transaction' }).first().click()
+  let editor = page.getByRole('dialog')
+  await editor.getByRole('textbox', { name: /Amount/ }).fill('77.35')
+  await editor.getByLabel('Merchant').fill('Browser Core Merchant')
+  await editor.getByLabel('Category').selectOption({ label: 'Coffee' })
+  await editor.getByLabel('Note').fill('Created by the Cloudflare Playwright flow')
+  await page.getByRole('button', { name: 'Save transaction' }).click()
+
+  const search = page.getByPlaceholder(/Search merchant/)
+  await search.fill('Browser Core Merchant')
+  const row = page.getByRole('button', { name: /BROWSER CORE MERCHANT/ }).first()
+  await expect(row).toBeVisible()
+  await row.click()
+  await expect(page.getByRole('heading', { name: 'Edit transaction' })).toBeVisible()
+  editor = page.getByRole('dialog')
+  await editor.getByRole('textbox', { name: /Amount/ }).fill('78.40')
+  await editor.getByLabel('Note').fill('Updated by the Cloudflare Playwright flow')
+  await page.getByRole('button', { name: 'Save transaction' }).click()
+  await expect(page.getByText('HK$78.40').first()).toBeVisible()
+
+  await page.getByRole('button', { name: 'Add transaction' }).first().click()
+  editor = page.getByRole('dialog')
+  await editor.getByRole('textbox', { name: /Amount/ }).fill('3.21')
+  await editor.getByLabel('Merchant').fill(reviewMerchant)
+  await page.getByRole('button', { name: 'Save transaction' }).click()
+
+  await page.goto('/settings')
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Rotate Shortcut token' }).click()
+  await expect(page.getByText('Copy this token now', { exact: true })).toBeVisible()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Send simulated import' }).click()
+  await expect(page.getByText(/Simulated import accepted:/)).toBeVisible()
+
+  const csvDownload = page.waitForEvent('download')
+  await page.getByRole('link', { name: 'Export CSV' }).click()
+  expect((await csvDownload).suggestedFilename()).toMatch(/\.csv$/u)
+  const jsonDownload = page.waitForEvent('download')
+  await page.getByRole('link', { name: 'Export JSON' }).click()
+  expect((await jsonDownload).suggestedFilename()).toMatch(/\.json$/u)
+
+  await page.goto('/review')
+  await expect(page.getByRole('heading', { name: 'Review queue' })).toBeVisible()
+  const reviewItem = page.getByRole('heading', { name: reviewMerchant }).first()
+  await expect(reviewItem).toBeVisible()
+  await reviewItem.locator('xpath=ancestor::article').getByRole('button', { name: 'Confirm' }).click()
+  await expect(reviewItem).toBeHidden()
+
+  await page.goto('/insights')
+  await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
+  await expect(page.getByText('By category')).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
+
+  await page.goto('/transactions')
+  await search.fill('Browser Core Merchant')
+  const matchingRows = page.getByRole('button', { name: /BROWSER CORE MERCHANT/ })
+  await expect(matchingRows.first()).toBeVisible()
+  const countBeforeDelete = await matchingRows.count()
+  await matchingRows.first().click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Delete', exact: true }).click()
+  await expect(matchingRows).toHaveCount(countBeforeDelete - 1)
+
+  await page.goto('/settings')
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page).toHaveURL('/login')
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+})
+
+test('mobile Cloudflare UI preserves navigation, editor interaction and width', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Mobile-only responsive verification.')
+  await authenticate(page)
+  await page.goto('/transactions')
+  await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible()
+  expect(await page.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }))).toEqual({ client: 390, scroll: 390 })
+  await page.getByRole('button', { name: 'Add transaction' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('button', { name: 'More information' }).click()
+  await expect(page.getByLabel('Location')).toBeVisible()
+  const editorWidth = await page.getByRole('dialog').evaluate((element) => ({ client: element.clientWidth, scroll: element.scrollWidth }))
+  expect(editorWidth.scroll).toBeLessThanOrEqual(editorWidth.client)
+  await page.getByRole('button', { name: 'Close editor' }).click()
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible()
+})

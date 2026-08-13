@@ -103,12 +103,12 @@ export interface BreakdownItem {
   amount_minor: number
 }
 
-export interface ServerStatus {
+export interface DeploymentStatus {
   service_health: string
   database_health: string
-  database_path: string
+  database_binding: string
   database_size: number
-  tailscale_url: string | null
+  deployment_url: string
   last_import: string | null
   recent_import_result: string | null
   pending_reviews: number

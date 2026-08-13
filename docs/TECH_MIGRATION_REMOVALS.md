@@ -2,30 +2,21 @@
 
 PROJECT_ROOT：`D:\自动记账项目`
 
-本文件必须在任何旧路线删除前存在。所有路径均以该 PROJECT_ROOT 为边界；不得据此删除项目外同名文件。
+本清单在删除旧实现前写入。所有路径均已解析为绝对路径；安全脚本必须拒绝项目根目录、项目外路径、`.git`、现有 UI 源码/资源、受保护数据目录和任何符号链接或目录联接点。
 
-## 本次指南整理中立即替换并删除
+## 已被新指南替换的旧指南
 
-以下旧指南已由新专题指南完整替代，并已于 2026-08-13 逐个删除：
+下列旧指南已于 2026-08-13 被 `docs/guides/` 内的新 Cloudflare 专题指南逐项替换并删除：
 
-| 绝对路径 | 状态 | 原因 | 替代指南 |
-| --- | --- | --- | --- |
-| `D:\自动记账项目\docs\guides\WINDOWS_OPERATIONS.md` | 已删除 | 只描述本机 FastAPI、Task Scheduler 与 Tailscale | `CLOUDFLARE_DEPLOYMENT.md` |
-| `D:\自动记账项目\docs\guides\DATA_OPERATIONS.md` | 已删除 | 只描述本机 SQLite 文件备份/恢复和本机诊断 | `D1_DATA_MIGRATION.md`、`SECURITY_AND_PRIVACY.md` |
-| `D:\自动记账项目\docs\guides\PWA_PRODUCT.md` | 已删除 | 包含迁移期间禁止继续演进的旧设计说明 | `UI_FREEZE.md`；业务行为由其他专题指南保留 |
+- `D:\自动记账项目\docs\guides\WINDOWS_OPERATIONS.md`
+- `D:\自动记账项目\docs\guides\DATA_OPERATIONS.md`
+- `D:\自动记账项目\docs\guides\PWA_PRODUCT.md`
 
-## Cloudflare 替代实现验证后才可删除
+## Phase 6 精确删除目标
 
-以下是实现层候选项，**本轮指南整理不删除**。只有 Phase 5 本地验证通过并再次审计引用后，才可由安全删除脚本逐项删除：
-
-### Python/FastAPI 后端
+以下实现已由通过本地测试的 Worker/D1 代码、D1 迁移、同源静态资源和部署脚本替代：
 
 - `D:\自动记账项目\backend`
-
-删除前必须先迁移其中的数据模型、API contract、业务服务与测试语义；不得把仍需移植的 schema/fixtures 当成无用文件。
-
-### Windows、本机服务、SQLite 文件备份与 Tailscale 脚本
-
 - `D:\自动记账项目\scripts\backup.ps1`
 - `D:\自动记账项目\scripts\common.ps1`
 - `D:\自动记账项目\scripts\configure-power.ps1`
@@ -42,25 +33,14 @@ PROJECT_ROOT：`D:\自动记账项目`
 - `D:\自动记账项目\scripts\uninstall-backup-task.ps1`
 - `D:\自动记账项目\scripts\uninstall-startup-task.ps1`
 - `D:\自动记账项目\scripts\update.ps1`
-
-### 仅属于旧部署路线的用户文档
-
 - `D:\自动记账项目\docs\TAILSCALE_SETUP.md`
+- `D:\自动记账项目\.env.example`
 
-下列文档应按新路线**原位改写而不是直接删除**：
+README、安装、备份、故障排查、PWA、Shortcut 和 Wallet 文档不直接删除；它们按新路线原位改写，避免丢失仍有效的产品操作说明。
 
-- `D:\自动记账项目\README.md`
-- `D:\自动记账项目\docs\INSTALL.md`
-- `D:\自动记账项目\docs\BACKUP_AND_RESTORE.md`
-- `D:\自动记账项目\docs\TROUBLESHOOTING.md`
-- `D:\自动记账项目\docs\IPHONE_PWA_SETUP.md`
-- `D:\自动记账项目\docs\SHORTCUT_SIMPLE_SETUP.md`
-- `D:\自动记账项目\docs\SHORTCUT_RELIABLE_SETUP.md`
-- `D:\自动记账项目\docs\WALLET_AUTOMATION_SETUP.md`
+## 永不由旧栈删除脚本处理的数据
 
-## 永不自动删除的数据保护项
-
-下列已发现项目内数据库目前视为测试/迁移证据，但在完成内容判定和迁移核对前一律按 G 类数据保护：
+下列旧 SQLite 文件已判定为 E2E/迁移证据，并已完成只读备份与 D1 记录数核对。即便如此，安全删除脚本仍禁止触碰它们；它们保持 Git 忽略，不会发布：
 
 - `D:\自动记账项目\runtime\e2e\data\tapledger.sqlite3`
 - `D:\自动记账项目\runtime\e2e\data\tapledger.sqlite3-shm`
@@ -68,9 +48,16 @@ PROJECT_ROOT：`D:\自动记账项目`
 - `D:\自动记账项目\runtime\e2e-backups\tapledger-2026-08-12-193454.sqlite3`
 - `D:\自动记账项目\runtime\e2e-backups\tapledger-2026-08-12-193454-1.sqlite3`
 - `D:\自动记账项目\runtime\e2e-backups\tapledger-2026-08-12-195436.sqlite3`
+- `D:\自动记账项目\migration-local-data\legacy-backups\tapledger.sqlite3.5d55c5bb957d.readonly.sqlite3`
 
-`.env`、未来的 `.dev.vars`、`wrangler.instance.jsonc`、迁移备份、日志和任何未知数据库都不得通过旧栈清理脚本删除或提交。
+`.env`、`.dev.vars`、`wrangler.instance.jsonc`、Wrangler 本地状态、日志、未知数据库和真实用户数据同样不在删除范围内。
 
 ## 执行记录
 
-- 2026-08-13：建立新指南结构；三份被替代的旧指南已按绝对路径逐个删除。实现层候选项仍保留，等待 Cloudflare 本地替代实现和测试通过。
+- 删除前门禁（2026-08-13）：lint、typecheck、单元测试、Worker 集成测试、前端测试、生产构建、Playwright 核心流程、D1 migration 状态和视觉尺寸比较均通过。
+- dry-run：18 个旧栈目标均位于 PROJECT_ROOT 内，目标类型正确且无 ReparsePoint；活跃前端/Worker 不引用这些实现。
+- 第一次精确删除：`backend` 被四个旧 Uvicorn 进程锁定，安全脚本按设计立即停止，未继续处理其他目标。
+- 用户允许继续后，仅停止命令行明确指向本项目 `backend\.venv`、监听 `127.0.0.1:8787/8788` 的 PID `39112`、`45376`、`2108`、`24876`；18 个目标随后逐项删除成功，复核 dry-run 返回 0。
+- `.env.example` 是仅服务旧 Python/Windows 路线的环境模板，删除前在本清单补记；新本地开发模板为 `.dev.vars.example`。
+- 删除后残留扫描：活跃代码和现行用户文档不再依赖旧服务；仅迁移审计、迁移安全指南和 publication-check 规则保留历史关键词。
+- 删除后复测：lint、typecheck、18 个单元/前端测试、5 个 Worker 集成测试、生产构建和 publication check 均再次通过。

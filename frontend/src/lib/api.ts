@@ -5,7 +5,7 @@ import type {
   Category,
   MerchantRule,
   PaymentMethod,
-  ServerStatus,
+  DeploymentStatus,
   Transaction,
   TransactionList,
   TrendPoint,
@@ -96,7 +96,7 @@ export const api = {
   breakdown: (dimension: 'categories' | 'merchants' | 'payment-methods', from: string, to: string) =>
     request<{ items: BreakdownItem[] }>(`/api/v1/analytics/${dimension}?date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`),
 
-  status: () => request<ServerStatus>('/api/v1/status'),
+  status: () => request<DeploymentStatus>('/api/v1/status'),
   rotateToken: (csrf: string) => request<{ token: string; warning: string }>('/api/v1/automation/token/rotate', { method: 'POST', headers: { 'X-CSRF-Token': csrf } }),
   simulateImport: (csrf: string) => request<{ result: string; transaction_id: string }>('/api/v1/automation/simulate', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: JSON.stringify({ amount: '12.50', currency: 'HKD', merchant: 'TapLedger Test Merchant' }) }),
   createBackup: (csrf: string) => request<{ name: string; size_bytes: number; sha256: string }>('/api/v1/admin/backup', { method: 'POST', headers: { 'X-CSRF-Token': csrf } }),

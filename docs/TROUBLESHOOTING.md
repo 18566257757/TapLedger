@@ -1,37 +1,29 @@
 # 故障排查
 
-## 服务无法启动
+## 本地开发失败
 
-- 运行 `.\scripts\status.ps1` 和 `.\scripts\health-check.ps1`。
-- 查看 `%LOCALAPPDATA%\TapLedger\logs\tapledger.stderr.log`。
-- 若提示端口 8787 被占用，使用 `Get-NetTCPConnection -LocalPort 8787 -State Listen` 查明进程；TapLedger 脚本不会结束未知进程。
-- 若虚拟环境缺失，重新运行 `.\scripts\setup.ps1`。
+```powershell
+npm ci
+npm run db:migrate:local
+npm run typecheck
+npm run build
+```
 
-## Migration 失败
+确认 Node.js 满足 `>=20.19`，并且使用项目内依赖。删除或覆盖数据库、实例配置前必须先备份，不要用全局清理命令。
 
-不要删除数据库。先运行 `.\scripts\backup.ps1`；在 `backend` 目录执行 `.\.venv\Scripts\python.exe -m alembic current` 和 `.\.venv\Scripts\python.exe -m alembic check`，保留完整错误信息后再处理。
+## Cloudflare 部署失败
 
-## 数据库损坏
+```powershell
+npm run wrangler -- whoami
+npm run wrangler -- d1 migrations list DB --remote --config wrangler.instance.jsonc
+```
 
-立即停止服务，不要反复启动或复制 WAL 状态下的主文件。选择最近通过校验的备份，按 [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md) 恢复。
+若未登录，重新运行 `npm run deploy:current` 并在浏览器完成登录。不要把 Wrangler 凭证、account ID、D1 ID 或完整命令输出发布到 issue。
 
-## Tailscale 不可访问
+## 页面可开但 API 失败
 
-1. 确认本机 `http://127.0.0.1:8787/api/v1/health` 正常。
-2. Windows 与 iPhone 的 Tailscale 均为 Connected 且属于同一 Tailnet。
-3. 运行 `tailscale status` 和 `tailscale serve status`。
-4. 检查 Tailnet ACL。不要用 Funnel 或公网端口转发绕过问题。
+访问部署 URL 的 `/api/v1/health`。正常响应是 `status: ok`。确认构建使用实例配置、远程 migrations 已应用且 binding 名为 `DB`。SPA 深链应返回 HTML，而不存在的 `/api/*` 应返回 JSON 404。
 
-## Shortcut 返回 401/429
+## Shortcut 返回 401/503
 
-- 401：token 不匹配。Settings 中轮换后必须同步更新 iPhone 请求头。
-- 429：每个客户端每分钟最多 60 个 Shortcut 请求，稍后用 Outbox batch 重试。
-- 不要把 token 粘贴到日志、截图或 URL。
-
-## 离线队列未同步
-
-当前 PWA 有意不后台静默上传。恢复服务器后重新打开编辑器，按提示确认；iPhone 可靠采集使用独立 `TapLedger Sync Outbox`。清理 Safari 网站数据前先确认队列为空。
-
-## 安全停止
-
-运行 `.\scripts\stop.ps1`。脚本只停止 PID 文件指向、且可执行路径和命令行都匹配项目虚拟环境与 `uvicorn app.main:app` 的进程；不匹配时会拒绝操作。
+在 Settings 轮换 token，把新值更新到 iPhone Authorization header。503 表示尚未配置 token；401 表示缺失、错误或已轮换。不要把 token 放 URL。

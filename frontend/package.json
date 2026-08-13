@@ -5,31 +5,45 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "test": "vitest run",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint src tests vite.config.ts vitest.worker.config.ts playwright.config.ts",
+    "typecheck": "tsc -b",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "vitest run --config vite.config.ts",
+    "test:frontend": "vitest run --config vite.config.ts",
+    "test:integration": "vitest run --config vitest.worker.config.ts",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "deploy:template": "wrangler d1 migrations apply DB --remote --config ../wrangler.jsonc && vite build && wrangler deploy --config dist/tapledger/wrangler.json"
   },
   "dependencies": {
     "@tanstack/react-query": "5.101.4",
+    "hono": "4.13.1",
     "lucide-react": "1.31.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router-dom": "7.18.2",
-    "recharts": "3.10.1"
+    "recharts": "3.10.1",
+    "zod": "4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.52.0",
+    "@cloudflare/vitest-pool-workers": "0.21.2",
+    "@cloudflare/workers-types": "5.20260813.1",
     "@playwright/test": "1.62.1",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.4",
+    "@types/node": "24.13.3",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@types/node": "24.13.3",
     "@vitejs/plugin-react": "6.0.5",
     "jsdom": "29.1.1",
+    "oxlint": "1.76.0",
     "typescript": "7.0.2",
     "vite": "8.2.1",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "wrangler": "4.122.0"
   }
 }

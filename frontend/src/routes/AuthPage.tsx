@@ -47,7 +47,7 @@ export function AuthPage() {
         <p className="auth-brand">TapLedger</p>
         <h1>{isSetup ? t('setupPrivate') : t('welcomeBack')}</h1>
         <p>{isSetup ? t('firstUseHint') : t('ledgerReady')}</p>
-        <div className="local-status"><CheckCircle2 />127.0.0.1 · {t('synced')}</div>
+        <div className="local-status"><CheckCircle2 />Private D1 · {t('synced')}</div>
         <form onSubmit={submit}>
           <label>{t('username')}<input aria-label="Username" autoComplete="username" minLength={3} required value={username} onChange={(event) => setUsername(event.target.value)} /></label>
           <label>{t('password')}<span className="password-control"><input aria-label="Password" type={showPassword ? 'text' : 'password'} autoComplete={isSetup ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? t('hidePassword') : t('showPassword')}>{showPassword ? <EyeOff /> : <Eye />}</button></span>{isSetup ? <small>{t('passwordHint')}</small> : null}</label>
@@ -60,7 +60,7 @@ export function AuthPage() {
           {error ? <p className="form-error" role="alert">{error}</p> : null}
           <button className="primary-button auth-submit" disabled={busy}>{busy ? '...' : isSetup ? t('createAdmin') : t('signIn')}</button>
         </form>
-        <p className="auth-footnote">Local-first · No analytics · No cloud account</p>
+        <p className="auth-footnote">Self-hosted · No analytics · Private database</p>
       </section>
     </main>
   )

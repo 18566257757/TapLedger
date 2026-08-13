@@ -129,7 +129,7 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
     event.preventDefault()
     if (!navigator.onLine && !transaction) {
       enqueueTransaction({ type, amount, currency, merchant, category_id: categoryId || null, payment_method_id: paymentMethodId || null, transaction_date: new Date(transactionDate).toISOString(), purpose: purpose || null, note: note || null, location_name: locationName || null, latitude: latitude || null, longitude: longitude || null, is_excluded_from_analytics: excluded })
-      setMessage('Saved on this device. Confirm sync when the server is online.')
+      setMessage('Saved on this device. Confirm sync when the Cloud service is online.')
       return
     }
     mutation.mutate()

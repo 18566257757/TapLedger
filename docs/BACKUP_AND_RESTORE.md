@@ -1,21 +1,7 @@
 # 备份与恢复
 
-## 创建备份
+Settings → Data & backups 提供 CSV、JSON 导出和 “Back up now”。备份快照以 JSON 保存到当前用户自己的 D1，记录 SHA-256 和大小；列表只显示最近三项。建议同时下载 JSON 并保存在用户控制的独立加密存储中，避免 Cloudflare 账户/D1 单点丢失。
 
-运行 `.\scripts\backup.ps1`，或在 Settings → Data & backups 点击“Back up now”。TapLedger 使用 SQLite connection backup API，不会在数据库可能写入时直接复制主文件。每个备份在前后执行完整性检查，并生成同名 `.sha256` 文件。
+恢复 API 需要有效网页登录 session、CSRF 和管理员密码。流程先验证 schema/表/字段，再创建恢复前备份，最后通过原子 D1 batch 写入；约束失败返回错误且不会留下部分账本。
 
-默认保留最近 30 个每日备份，并额外保留最多 12 个月度备份。目录是 `%USERPROFILE%\Documents\TapLedger Backups\`。
-
-## 恢复
-
-1. 运行 `.\scripts\status.ps1` 并记下当前状态。
-2. 在备份目录中选择完整文件名，不要移动到其他目录。
-3. 运行：
-
-```powershell
-.\scripts\restore.ps1 -BackupName 'tapledger-2026-08-12-020000.sqlite3' -ConfirmRestore
-```
-
-脚本会验证选中备份、停止受 PID 文件管理的 TapLedger、先备份当前数据库、原子替换、运行 Alembic、再次检查并在原先运行时重新启动。迁移或启动失败时会尝试用恢复前备份回滚。
-
-恢复是高影响操作。网页端只提供密码保护的“验证备份”能力，不直接覆盖数据库；实际恢复必须从 PowerShell明确传入 `-ConfirmRestore`。
+恢复会替换账本、目录、规则、设置、导入事件和备份内容，是高影响操作。执行前确认目标文件和当前账户，并保留下载副本。网页当前没有暴露完整恢复表单；需要恢复时按 API contract 或受审计的管理工具操作，不要把密码写入脚本、命令历史或 issue。
