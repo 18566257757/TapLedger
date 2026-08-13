@@ -15,6 +15,12 @@ async function authenticate(page: Page) {
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening)|TapLedger/ }).first()).toBeVisible()
 }
 
+async function openSettingCard(page: Page, title: string) {
+  const card = page.locator('details.setting-card').filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+  if (!(await card.getAttribute('open'))) await card.locator(':scope > summary').click()
+  return card
+}
+
 test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and logout', async ({ page, isMobile }) => {
   test.setTimeout(90_000)
   test.skip(isMobile, 'The complete mutation flow runs once in desktop Chromium; mobile layout has a focused test.')
@@ -50,6 +56,7 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
 
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+  await openSettingCard(page, 'Automation')
   page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Rotate Shortcut token' }).click()
   await expect(page.getByText('Copy this token now', { exact: true })).toBeVisible()
@@ -57,6 +64,7 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
   await page.getByRole('button', { name: 'Send simulated import' }).click()
   await expect(page.getByText(/Simulated import accepted:/)).toBeVisible()
 
+  await openSettingCard(page, 'Data & backups')
   const csvDownload = page.waitForEvent('download')
   await page.getByRole('link', { name: 'Export CSV' }).click()
   expect((await csvDownload).suggestedFilename()).toMatch(/\.csv$/u)
@@ -64,8 +72,10 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
   await page.getByRole('link', { name: 'Export JSON' }).click()
   expect((await jsonDownload).suggestedFilename()).toMatch(/\.json$/u)
 
+  await openSettingCard(page, 'Preferences')
   await page.getByLabel('Language').selectOption('zh-CN')
   await expect(page.getByText('供 iPhone 快捷指令使用的私人接口。')).toBeVisible()
+  await openSettingCard(page, '类别')
   await expect(page.getByText('餐饮', { exact: true }).first()).toBeVisible()
   await page.getByRole('textbox', { name: /昵称/ }).fill('中文昵称')
   await page.getByRole('button', { name: '保存昵称' }).click()
@@ -73,7 +83,9 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
   await page.goto('/')
   await expect(page.locator('.home-heading h1')).toContainText('中文昵称')
   await page.goto('/settings')
+  await openSettingCard(page, '偏好设置')
   await page.getByLabel('语言').selectOption('en')
+  await openSettingCard(page, 'Automation')
   await expect(page.getByText('Private endpoint for your iPhone Shortcut.')).toBeVisible()
 
   await page.goto('/review')
@@ -119,4 +131,23 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   expect(editorWidth.scroll).toBeLessThanOrEqual(editorWidth.client)
   await page.getByRole('button', { name: 'Close editor' }).click()
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible()
+
+  await page.goto('/insights')
+  await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
+  const dateFields = await page.locator('.date-range label').evaluateAll((labels) => labels.map((label) => {
+    const rect = label.getBoundingClientRect()
+    return { top: rect.top, left: rect.left, right: rect.right }
+  }))
+  expect(dateFields).toHaveLength(3)
+  expect(dateFields[0].top).toBeLessThan(dateFields[1].top)
+  expect(Math.round(dateFields[1].top)).toBe(Math.round(dateFields[2].top))
+  expect(dateFields[1].right).toBeLessThanOrEqual(dateFields[2].left)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+
+  await page.goto('/settings')
+  await expect(page.locator('details.setting-card[open]')).toHaveCount(0)
+  const automationCard = await openSettingCard(page, 'Automation')
+  await expect(automationCard.getByRole('button', { name: 'Rotate Shortcut token' })).toBeVisible()
+  await automationCard.locator(':scope > summary').click()
+  await expect(automationCard.getByRole('button', { name: 'Rotate Shortcut token' })).toBeHidden()
 })

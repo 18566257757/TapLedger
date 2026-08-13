@@ -49,12 +49,19 @@ async function login(page: Page) {
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening)|TapLedger/ }).first()).toBeVisible()
 }
 
+async function openSettingCard(page: Page, title: string) {
+  const card = page.locator('details.setting-card').filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+  if (!(await card.getAttribute('open'))) await card.locator(':scope > summary').click()
+  return card
+}
+
 async function seedCloudflareVisualState(page: Page) {
   if (process.env.TAPLEDGER_VISUAL_DIR !== 'visual-after-cloudflare' && process.env.TAPLEDGER_SEED_VISUAL_BACKUPS !== '1') return
   const loaded = page.waitForResponse((response) => response.url().endsWith('/api/v1/admin/backups') && response.ok())
   await page.goto('/settings')
   await loaded
   const backupCard = page.locator('.setting-card').filter({ hasText: 'Data & backups' })
+  if (!(await backupCard.getAttribute('open'))) await backupCard.locator(':scope > summary').click()
   const backupRows = backupCard.locator('.simple-list > div')
   while (await backupRows.count() < 3) {
     const before = await backupRows.count()
@@ -135,6 +142,9 @@ test('mobile UI freeze baseline', async ({ page }) => {
 
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: '设置', exact: true })).toBeVisible()
+  await openSettingCard(page, '自动化')
+  await openSettingCard(page, '类别')
+  await openSettingCard(page, '偏好设置')
   await expect(page.getByText('供 iPhone 快捷指令使用的私人接口。')).toBeVisible()
   await expect(page.locator('.setting-card').filter({ hasText: '15 个启用类别' }).locator('.simple-list span').filter({ hasText: '餐饮' }).first()).toBeVisible()
   await expect(page.getByText('昵称', { exact: true }).first()).toBeVisible()

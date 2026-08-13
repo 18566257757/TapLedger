@@ -3,6 +3,18 @@
   "private": true,
   "version": "0.2.0",
   "description": "A self-hosted personal ledger for Cloudflare Workers and D1.",
+  "keywords": [
+    "apple-pay",
+    "apple-wallet",
+    "ios-shortcuts",
+    "expense-tracker",
+    "personal-finance",
+    "self-hosted",
+    "cloudflare-workers",
+    "cloudflare-d1",
+    "pwa",
+    "transaction-automation"
+  ],
   "scripts": {
     "postinstall": "npm ci --prefix frontend --ignore-scripts",
     "dev": "npm run dev --prefix frontend",

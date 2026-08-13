@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Archive, CreditCard, Database, Download, KeyRound, LogOut, Plus, Server, ShieldCheck, Tags, UploadCloud, Workflow } from 'lucide-react'
+import { Archive, ChevronDown, CreditCard, Database, Download, KeyRound, LogOut, Plus, Server, ShieldCheck, Tags, UploadCloud, Workflow } from 'lucide-react'
 import { useAuth } from '../app/AuthProvider'
 import { api } from '../lib/api'
 import { formatDateTime } from '../lib/format'
@@ -142,5 +142,5 @@ export function SettingsPage() {
 }
 
 function SettingCard({ icon: Icon, title, description, children }: { icon: typeof Workflow; title: string; description: string; children: ReactNode }) {
-  return <section className="card setting-card"><header><span className="setting-icon"><Icon /></span><div><h2>{title}</h2><p>{description}</p></div></header><div className="setting-body">{children}</div></section>
+  return <details className="card setting-card"><summary className="setting-summary"><span className="setting-icon"><Icon /></span><div><h2>{title}</h2><p>{description}</p></div><ChevronDown className="setting-chevron" /></summary><div className="setting-body">{children}</div></details>
 }

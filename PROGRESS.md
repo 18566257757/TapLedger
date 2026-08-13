@@ -46,6 +46,16 @@
 - 新增并在本地、远程 D1 成功应用 `0002_user_display_name.sql`；生产 Worker 已重新部署到原 URL，远程首页、D1 health 和 SPA 深链接检查通过。
 - 实测：lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、Playwright 核心流程 4/4、视觉证据 2/2、production build 与 publication check 全部通过。
 
+## 手机分析、折叠设置与 GitHub 展示更新
+
+- 2026-08-13：手机 Insights 日期控件改为“周期独占一行、开始/结束并排下一行”，`390px` Playwright 断言确认字段互不相交且页面无横向溢出。
+- 饼图和柱状图使用与站内深浅色主题一致的紧凑 Tooltip，取消整块点击高亮；长商户坐标轴标签单行省略、Tooltip 保留完整名称；关闭入场动画，数据加载后立即稳定显示完整图形。
+- Settings 的 7 个现有模块改为原生 `details/summary` 折叠卡片，默认全部收起；点击标题区展开，再次点击收起。自动化、导出、语言、昵称等原有操作保持不变。
+- README 已改为中英双语，明确突出“iOS 快捷指令 Wallet 交易个人自动化 → 用户自己的 Worker/D1”导入链路，同时说明它不是商户端 Apple Tap to Pay；加入两张已脱敏的中文快捷指令教程图。
+- 新增 PolyForm Noncommercial License 1.0.0，允许个人及其他非商业用途、禁止商业使用；GitHub 仓库简介改为中英双语并加入 11 个 Topics。
+- 实测：lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、Playwright 核心流程 4/4、桌面/手机专项视觉捕获各 1/1、production build 和 publication check 均通过。
+- Cloudflare 远程 D1 无待执行 migration；生产 Worker 已重新部署，远程首页、D1 health 和 SPA deep link smoke 全部通过。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。
