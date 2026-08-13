@@ -30,7 +30,7 @@ Worker route 不得直接堆放这些业务规则。D1 写入和对应 ImportEve
 
 ## 缺失字段处理
 
-Shortcut 传来的 Wallet 字段都视为可能缺失。服务端最低要求 `client_event_id` 和 `amount`：
+Shortcut 传来的 Wallet 字段都视为可能缺失。服务端最低要求 `amount`；`client_event_id` 应由 Shortcut 生成 UUID，中文兼容请求缺失该字段时由 Worker 根据核心交易字段生成稳定哈希 ID：
 
 - 缺少 currency：使用 `AppSetting.base_currency`，并标记该值来自默认配置。
 - 缺少 merchant：保存为 `Unknown Merchant`，进入 Review Inbox。

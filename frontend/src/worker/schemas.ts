@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { adaptShortcutPayload } from './adapters/shortcutPayload'
 
 const nullableText = (maximum: number) => z.string().trim().max(maximum).nullable().optional()
 const identifier = z.string().trim().min(1).max(128)
@@ -22,9 +23,9 @@ export const changePasswordSchema = z.object({
   new_password: z.string().min(12).max(256),
 })
 
-export const shortcutTransactionSchema = z.object({
+export const shortcutTransactionSchema = z.preprocess(adaptShortcutPayload, z.object({
   schema_version: z.literal(1).default(1),
-  client_event_id: z.string().trim().min(1).max(64),
+  client_event_id: z.string().trim().min(1).max(64).optional(),
   amount: z.string().trim().min(1).max(40),
   currency: z.string().trim().length(3).nullable().optional(),
   merchant: nullableText(500),
@@ -36,7 +37,7 @@ export const shortcutTransactionSchema = z.object({
   latitude: coordinate,
   longitude: coordinate,
   source: z.enum(['wallet_shortcut', 'manual_pwa', 'csv_import', 'recurring', 'simulator']).default('wallet_shortcut'),
-})
+}))
 
 export const shortcutBatchSchema = z.object({
   transactions: z.array(shortcutTransactionSchema).min(1).max(100),

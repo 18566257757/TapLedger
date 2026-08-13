@@ -87,6 +87,10 @@ POST /admin/restore
 
 继续接受现有字段：`schema_version`、`client_event_id`、`amount`（字符串）、`currency`、`merchant`、`card`、`transaction_date`、`captured_at`、`purpose`、`location_name`、`latitude`、`longitude`、`source`。
 
+为适配中文系统语言的 iPhone Shortcuts，Worker 的请求 adapter 还接受对应中文键：`版本`、`事件ID`、`金额`、`币种`、`商户`、`卡片`、`时间`、`捕获时间`、`交易名称`、`位置`、`纬度`、`经度`、`来源`（并兼容繁体写法）。英文标准键存在时优先使用英文键。Shortcut 传入的有限非负数字金额必须在 adapter 中转为十进制字符串，再进入统一金额解析；不得把 JavaScript 浮点值直接持久化。
+
+`client_event_id` 仍应由 Shortcut 主动生成 UUID。为了兼容无法方便加入 UUID 动作的现有中文 Shortcut，缺失时 Worker 可根据金额、币种、商户、卡片、交易时间和用途生成不含原文的稳定 SHA-256 派生 ID；数据库唯一约束与短时间重复检测仍必须生效。
+
 相同 `client_event_id` 重发必须返回既有 transaction ID 和 `already_processed`，不得创建第二笔。响应不得返回 Shortcut token。
 
 ## 列表、分析与导出

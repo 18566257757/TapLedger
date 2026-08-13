@@ -88,7 +88,7 @@ export interface IngestionResult {
 
 export interface ShortcutTransactionInput {
   schema_version?: number
-  client_event_id: string
+  client_event_id?: string
   amount: string
   currency?: string | null
   merchant?: string | null

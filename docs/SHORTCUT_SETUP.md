@@ -6,6 +6,21 @@
 4. 在 iPhone Shortcuts 新建 `TapLedger Capture`，为每个事件生成 UUID，作为 `client_event_id`。
 5. 用 Dictionary 构造 JSON，并通过 “Get Contents of URL” 发送 POST；请求头为 `Authorization: Bearer <token>`，正文类型 JSON。
 
+中文 iPhone 可以直接使用以下字典键，无需改成英文：
+
+```text
+事件ID      生成 UUID（推荐；省略时 Worker 会生成稳定派生 ID）
+金额        Wallet 的“数量”（数字或文本均可）
+币种        HKD、港币或港元（不填则使用账本基础币种）
+商户        Wallet 的“商家”
+交易名称    Wallet 的“名称”
+卡片        Wallet 的“卡片或凭证”
+时间        Wallet 交易时间或当前日期
+位置        当前位置（可选；只提取名称和经纬度）
+```
+
+简体和繁体字段名都受支持。若同一 JSON 同时出现英文标准键与中文别名，以英文键为准。
+
 最小正文：
 
 ```json

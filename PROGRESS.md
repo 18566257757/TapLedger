@@ -21,14 +21,20 @@
 | 本地 D1 migrations | 无待执行迁移 |
 | lint / typecheck | 通过 |
 | unit | 5 个文件，19/19 通过 |
-| Worker integration | 1 个文件，5/5 通过 |
+| Worker integration | 1 个文件，6/6 通过；含中文 Shortcut 字段、数字金额、位置对象、派生事件 ID 与幂等重试 |
 | frontend tests | 5 个文件，19/19 通过 |
 | 本地 Playwright 核心流程 | 4/4 通过；按项目/视觉证据用途有意跳过 6 项 |
 | 远程 Playwright | 视觉捕获 2/2；核心桌面/手机 2/2；额外 smoke 3/3 通过。首次远程运行发现并修复商户末尾数字误截断 |
 | production build | Worker 141 modules、client 2440 modules；成功 |
 | visual regression | 13/13 尺寸一致，4 组逐像素一致；无布局漂移 |
 | npm audit | 0 vulnerabilities |
-| GitHub Actions | CI #12 成功，quality job 2 分 23 秒 |
+| GitHub Actions | CI #13 成功，quality job 1 分 51 秒 |
+
+## 中文 Shortcut 兼容更新
+
+- 2026-08-13：新增独立 Shortcut payload adapter，兼容简体/繁体的金额、币种、商户、交易名称、卡片、时间、位置、事件 ID 等键；标准英文键仍优先。
+- Shortcuts 数字金额在持久化前转换为十进制文本；位置对象只提取名称和有效经纬度；缺少事件 ID 时根据核心交易字段生成不含原文的 SHA-256 派生 ID。
+- 本地 lint、typecheck、unit 19/19、Worker integration 6/6、frontend 19/19、build 和 publication check 均通过。重新部署后远程首页、D1 health 与 SPA deep link smoke 通过；未轮换生产 Token，未写入或删除生产交易。
 
 ## 最终状态与尚未完成
 

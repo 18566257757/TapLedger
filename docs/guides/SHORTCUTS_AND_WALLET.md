@@ -27,6 +27,8 @@ Content-Type: application/json
 
 继续提交：`schema_version`、`client_event_id`、`amount`、`currency`、`merchant`、`card`、`transaction_date`、`captured_at`、`purpose`、`location_name`、`latitude`、`longitude`、`source`。每个事件使用唯一 UUID；所有 Wallet 字段按可能缺失处理，规则见 `INGESTION_AND_RULES.md`。
 
+中文系统可直接使用字典键：`版本`、`事件ID`、`金额`、`币种`、`商户`、`卡片`、`时间`、`捕获时间`、`交易名称`、`位置`、`纬度`、`经度`、`来源`。Worker 在独立 adapter 中转换这些别名，不改变标准英文 API；繁体键也兼容。数字金额会转为十进制文本，位置对象只提取名称和有效经纬度。未提供 `事件ID` 时 Worker 会生成稳定派生 ID，但可靠 Outbox 仍应显式使用“生成 UUID”。
+
 ## Simple Capture
 
 ```text

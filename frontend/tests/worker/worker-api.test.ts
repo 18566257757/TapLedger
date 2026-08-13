@@ -223,6 +223,46 @@ describe('TapLedger Worker API with D1', () => {
     expect((await request('/api/v1/shortcut/test', { method: 'POST', headers: { Authorization: `Bearer ${secondToken}` } })).status).toBe(200)
   }, 30_000)
 
+  it('accepts localized Chinese Shortcut keys, numeric amounts and generated event identities', async () => {
+    const state = await setup()
+    const token = (await (await mutate('/api/v1/automation/token/rotate', undefined, state)).json<{ token: string }>()).token
+    const localizedPayload = {
+      金额: 8,
+      币种: '港币',
+      商户: '7-Eleven, HK (0746)',
+      交易名称: '钱包交易',
+      卡片: 'BOC CHILL WORLD MASTERCARD',
+      时间: '2026-08-13T06:39:00.000Z',
+      位置: { 名称: '测试地点', 纬度: 22.3, 经度: 114.17 },
+    }
+    const sendLocalized = () => request('/api/v1/shortcut/transactions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(localizedPayload),
+    })
+
+    const created = await sendLocalized()
+    expect(created.status, await created.clone().text()).toBe(200)
+    expect(await created.json()).toMatchObject({ success: true, duplicate: false, review_status: 'missing_information' })
+    expect(await (await sendLocalized()).json()).toMatchObject({ success: true, duplicate: true, result: 'already_processed' })
+
+    const list = await request('/api/v1/transactions', {}, state)
+    const body = await list.json<{ total: number; items: Array<Record<string, unknown>> }>()
+    expect(body.total).toBe(1)
+    expect(body.items[0]).toMatchObject({
+      amount: '8.00',
+      currency: 'HKD',
+      merchant_raw: '7-Eleven, HK (0746)',
+      card_raw_name: 'BOC CHILL WORLD MASTERCARD',
+      purpose: '钱包交易',
+      location_name: '测试地点',
+      latitude: '22.3',
+      longitude: '114.17',
+      source: 'wallet_shortcut',
+    })
+    expect(String(body.items[0].client_event_id)).toMatch(/^shortcut-generated-[0-9a-f]{40}$/u)
+  }, 30_000)
+
   it('revokes other sessions after a password change and rejects expired sessions', async () => {
     const first = await setup()
     const secondLogin = await request('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ username: 'owner', password: PASSWORD }) })

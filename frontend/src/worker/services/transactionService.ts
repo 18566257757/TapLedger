@@ -10,6 +10,7 @@ import type {
   TransactionType,
 } from '../types'
 import { HttpError } from '../utils/http'
+import { sha256Hex } from '../utils/crypto'
 import { toMinorUnits } from '../utils/money'
 import { normalizeDateTime, nowIso } from '../utils/time'
 import { DuplicateDetectionService } from './duplicateDetectionService'
@@ -81,14 +82,24 @@ export class TransactionService {
   async ingestShortcut(payload: ShortcutTransactionInput, source: TransactionSource = 'wallet_shortcut', requestIdentity = 'shortcut'): Promise<IngestionResult> {
     const settings = await this.database.prepare('SELECT base_currency FROM app_settings WHERE id = 1').first<{ base_currency: string }>()
     const capturedAt = normalizeDateTime(payload.captured_at)
+    const transactionDate = normalizeDateTime(payload.transaction_date, capturedAt)
+    const generatedIdentity = JSON.stringify([
+      payload.amount,
+      payload.currency ?? settings?.base_currency ?? 'HKD',
+      payload.merchant ?? '',
+      payload.card ?? '',
+      transactionDate,
+      payload.purpose ?? '',
+    ])
+    const clientEventId = payload.client_event_id ?? `shortcut-generated-${(await sha256Hex(generatedIdentity)).slice(0, 40)}`
     return this.ingest({
-      clientEventId: payload.client_event_id,
+      clientEventId,
       transactionType: 'expense',
       amount: payload.amount,
       currency: (payload.currency ?? settings?.base_currency ?? 'HKD').toUpperCase(),
       merchantRaw: payload.merchant,
       cardRawName: payload.card,
-      transactionDate: normalizeDateTime(payload.transaction_date, capturedAt),
+      transactionDate,
       capturedAt,
       source,
       purpose: payload.purpose,
