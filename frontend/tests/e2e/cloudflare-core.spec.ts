@@ -211,6 +211,54 @@ test('mobile Cloudflare UI preserves navigation, editor interaction and width', 
   await expect(automationCard.getByRole('button', { name: 'Rotate Shortcut token' })).toBeHidden()
 })
 
+test('mobile Wallet card remains visible and is separated in payment-method analytics', async ({ page, isMobile }) => {
+  test.setTimeout(60_000)
+  test.skip(!isMobile, 'Mobile-only Wallet card display verification.')
+  await authenticate(page)
+  const suffix = Math.random().toString(36).slice(2, 9).toUpperCase()
+  const merchant = `WALLET CARD QA ${suffix}`
+  const card = `Wallet QA Card ${suffix}`
+
+  await page.goto('/settings')
+  const automationCard = await openSettingCard(page, 'Automation')
+  page.once('dialog', (dialog) => dialog.accept())
+  await automationCard.getByRole('button', { name: 'Rotate Shortcut token' }).click()
+  const token = await automationCard.locator('.secret-reveal code').innerText()
+  const imported = await page.request.post('/api/v1/shortcut/transactions', {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      client_event_id: `wallet-card-qa-${suffix}`,
+      amount: '19.80',
+      currency: 'HKD',
+      merchant,
+      card,
+      transaction_date: new Date().toISOString(),
+    },
+  })
+  expect(imported.ok()).toBe(true)
+
+  await page.goto('/transactions')
+  await page.getByRole('button', { name: /Filters/ }).click()
+  await page.getByPlaceholder('Search merchant, purpose, or note').fill(merchant)
+  const transactionRow = page.getByRole('button', { name: new RegExp(merchant) }).first()
+  await expect(transactionRow).toBeVisible()
+  await expect(transactionRow.locator('.transaction-mobile-payment')).toHaveText(card)
+  await expect(transactionRow.locator('.transaction-mobile-payment')).toBeVisible()
+  await transactionRow.click()
+  const editor = page.getByRole('dialog')
+  await expect(editor).toBeVisible()
+  const paymentSelect = editor.locator('label.field-row').filter({ hasText: 'Payment method' }).locator('select')
+  await expect(paymentSelect).toContainText(`Wallet: ${card} (not linked)`)
+  await page.getByRole('button', { name: 'Close editor' }).click()
+
+  await page.goto('/insights')
+  const paymentCard = page.locator('.breakdown-card').filter({ has: page.getByRole('heading', { name: 'Payment methods' }) })
+  const paymentRow = paymentCard.locator('.breakdown-row').filter({ hasText: card })
+  await expect(paymentRow.getByText(card, { exact: true })).toBeVisible()
+  await expect(paymentRow.locator('strong')).toHaveText('HK$19.80')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(402)
+})
+
 test('desktop setting cards preserve independent collapsed height', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Desktop-only two-column settings verification.')
   await authenticate(page)

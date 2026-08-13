@@ -101,6 +101,7 @@ POST /admin/restore
 
 - 交易列表保留分页、排序、全文搜索、日期、类型、类别、Payment Method、来源、Review、币种、商户和金额范围筛选。
 - 分析支持日/月/年/自定义、时区、退款和排除交易；多个币种分开返回，不伪造汇率。
+- 支付方式分析优先使用已关联的 `PaymentMethod.display_name`；未关联时按 `card_raw_name` 分组，只有 Wallet 未提供卡片名称时才归入 `Unmapped`。不得把不同的未关联卡统计成同一种支付方式。
 - CSV 保留旧字段，正确处理逗号、引号、换行、中文、空字段和时区，并以经验证的 Excel 兼容编码输出。
 - JSON backup/restore 以可移植应用数据格式实现，不暴露密码 hash、session、Shortcut token hash 或 Secret；恢复前再次验证管理员并明确确认。
 

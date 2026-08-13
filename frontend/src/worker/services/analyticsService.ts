@@ -56,7 +56,7 @@ export class AnalyticsService {
     const label = {
       category: "COALESCE(c.name, 'Uncategorized')",
       merchant: 't.merchant_normalized',
-      payment_method: "COALESCE(p.display_name, 'Unmapped')",
+      payment_method: "COALESCE(p.display_name, NULLIF(TRIM(t.card_raw_name), ''), 'Unmapped')",
     }[dimension]
     const rows = await this.database.prepare(`
       SELECT

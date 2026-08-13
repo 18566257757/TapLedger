@@ -54,6 +54,8 @@ Shortcut 传来的 Wallet 字段都视为可能缺失。服务端最低要求 `a
 
 使用 `PaymentMethod.shortcut_match_text` 与原始卡片名称进行可解释、可测试的匹配。未知卡片保留 `card_raw_name`、不自动猜测敏感卡片信息，并进入 Review Inbox。
 
+新建 Payment Method 未显式填写 `shortcut_match_text` 时，默认使用其 `display_name` 作为后续 Shortcut 匹配文本。这只用于字符串包含匹配，不推断发卡行、卡号或其他敏感信息。已导入但未关联的交易继续保留原始卡名，不在部署时批量猜测或改写用户数据。
+
 ## Merchant Rule Engine
 
 匹配顺序固定为：

@@ -64,9 +64,9 @@ describe('TapLedger Worker API with D1', () => {
       display_name: 'HSBC Visa',
       issuer: 'HSBC',
       last_four: '1234',
-      shortcut_match_text: 'HSBC VISA',
     }, state)
     expect(paymentResponse.status).toBe(201)
+    expect(await paymentResponse.json()).toMatchObject({ shortcut_match_text: 'HSBC Visa' })
 
     const ruleResponse = await mutate('/api/v1/merchant-rules', {
       pattern: 'STARBUCKS',
@@ -351,6 +351,15 @@ describe('TapLedger Worker API with D1', () => {
       transaction_date: '2026-08-13T07:40:00.000Z',
       location_name: '测试区\n测试路',
     })
+
+    const paymentBreakdown = await request('/api/v1/analytics/payment-methods?date_from=2026-08-13T00:00:00.000Z&date_to=2026-08-14T00:00:00.000Z', {}, state)
+    expect(paymentBreakdown.status, await paymentBreakdown.clone().text()).toBe(200)
+    const paymentItems = await paymentBreakdown.json<{ items: Array<{ label: string; amount_minor: number }> }>()
+    expect(paymentItems.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: 'BOC CHILL WORLD MASTERCARD', amount_minor: 800 }),
+      expect.objectContaining({ label: '测试钱包卡片', amount_minor: 900 }),
+      expect.objectContaining({ label: '嵌套测试钱包卡片', amount_minor: 1025 }),
+    ]))
   }, 30_000)
 
   it('revokes other sessions after a password change and rejects expired sessions', async () => {

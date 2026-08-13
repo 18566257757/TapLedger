@@ -44,7 +44,7 @@ export function SettingsPage() {
   })
 
   const createCategory = useMutation({ mutationFn: () => api.createCategory({ name: categoryName, icon: 'circle' }, csrfToken!), onSuccess: async () => { setCategoryName(''); await queryClient.invalidateQueries({ queryKey: ['categories'] }) } })
-  const createMethod = useMutation({ mutationFn: () => api.createPaymentMethod({ display_name: methodName, last_four: lastFour || null, method_type: 'credit_card', icon: 'credit-card' }, csrfToken!), onSuccess: async () => { setMethodName(''); setLastFour(''); await queryClient.invalidateQueries({ queryKey: ['payment-methods'] }) } })
+  const createMethod = useMutation({ mutationFn: () => api.createPaymentMethod({ display_name: methodName, last_four: lastFour || null, method_type: 'credit_card', shortcut_match_text: methodName, icon: 'credit-card' }, csrfToken!), onSuccess: async () => { setMethodName(''); setLastFour(''); await queryClient.invalidateQueries({ queryKey: ['payment-methods'] }) } })
   const createRule = useMutation({ mutationFn: () => api.createRule({ pattern: rulePattern, match_type: 'contains', category_id: ruleCategory || null, priority: 100, is_enabled: true }, csrfToken!), onSuccess: async () => { setRulePattern(''); await queryClient.invalidateQueries({ queryKey: ['merchant-rules'] }) } })
   const updateCatalog = useMutation({
     mutationFn: async ({ kind, id, payload }: { kind: 'category' | 'method' | 'rule'; id: string; payload: Record<string, unknown> }) => {

@@ -57,7 +57,7 @@ catalogRoutes.post('/payment-methods', requireCsrf, async (c) => {
     INSERT INTO payment_methods (
       id, display_name, issuer, last_four, method_type, shortcut_match_text, icon, is_archived
     ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-  `).bind(id, payload.display_name, payload.issuer ?? null, payload.last_four ?? null, payload.method_type, payload.shortcut_match_text ?? null, payload.icon).run()
+  `).bind(id, payload.display_name, payload.issuer ?? null, payload.last_four ?? null, payload.method_type, payload.shortcut_match_text ?? payload.display_name, payload.icon).run()
   const row = await c.env.DB.prepare(`
     SELECT id, display_name, issuer, last_four, method_type, shortcut_match_text, icon, is_archived
     FROM payment_methods WHERE id = ?

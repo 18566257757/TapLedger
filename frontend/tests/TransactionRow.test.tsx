@@ -21,4 +21,9 @@ describe('TransactionRow', () => {
     expect(screen.getByText('Confirmed')).toBeInTheDocument()
     expect(screen.getByText(/-.*45\.80/)).toBeInTheDocument()
   })
+
+  it('shows the Wallet card name when no catalog payment method is linked', () => {
+    render(<LocaleProvider><TransactionRow transaction={{ ...transaction, card_raw_name: 'Wallet Test Card' }} /></LocaleProvider>)
+    expect(screen.getAllByText('Wallet Test Card')).toHaveLength(2)
+  })
 })

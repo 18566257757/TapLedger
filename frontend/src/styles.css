@@ -155,6 +155,7 @@ svg { width: 19px; height: 19px; stroke-width: 1.8; }
 .transaction-merchant, .transaction-category, .transaction-payment, .transaction-time { display: grid; gap: 4px; min-width: 0; }
 .transaction-merchant strong, .transaction-category strong, .transaction-payment strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .transaction-merchant small, .transaction-time { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
+.transaction-mobile-payment { display: none; }
 .review-mark { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; }
 .review-mark svg { width: 15px; }
 .review-mark.confirmed { color: var(--positive); }
@@ -405,6 +406,7 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .transaction-category, .transaction-payment, .transaction-time, .review-mark { display: none; }
   .transaction-merchant strong { font-size: 13px; }
   .transaction-merchant small { text-transform: capitalize; }
+  .transaction-merchant .transaction-mobile-payment { display: block; text-transform: none; }
   .transaction-amount { font-size: 13px; }
   .transaction-amount small { display: block; }
   .mobile-fab { position: fixed; z-index: 48; right: 20px; bottom: calc(84px + env(safe-area-inset-bottom)); width: 54px; height: 54px; display: grid; place-items: center; border: 0; border-radius: 50%; color: white; background: var(--accent); box-shadow: 0 10px 28px rgb(36 57 215 / 32%); }

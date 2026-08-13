@@ -23,9 +23,9 @@
 | unit | 7 个文件，23/23 通过 |
 | Worker integration | 1 个文件，6/6 通过；含中文 Shortcut 字段、数字金额、位置对象、派生事件 ID 与幂等重试 |
 | frontend tests | 7 个文件，23/23 通过 |
-| 本地 Playwright 核心流程 | 4/4 通过；按项目/视觉证据用途有意跳过 6 项 |
+| 本地 Playwright 核心流程 | 6/6 通过；按桌面/手机或视觉证据用途有意跳过 8 项 |
 | 远程 Playwright | 视觉捕获 2/2；核心桌面/手机 2/2；额外 smoke 3/3 通过。首次远程运行发现并修复商户末尾数字误截断 |
-| production build | Worker 141 modules、client 2440 modules；成功 |
+| production build | Worker 142 modules、client 2440 modules；成功 |
 | visual regression | 13/13 尺寸一致，4 组逐像素一致；无布局漂移 |
 | npm audit | 0 vulnerabilities |
 | GitHub Actions | CI #13 成功，quality job 1 分 51 秒 |
@@ -96,6 +96,14 @@
 - Adapter 现兼容包装字段内的 JSON 字符串与 Shortcuts 原生键值文本；只提取白名单交易字段，支持中英文冒号、等号、分号和跨行位置。标准顶层字段仍优先。
 - 新增单元诊断测试保证日志不包含交易值；Worker 集成测试分别覆盖嵌套 object、序列化 JSON 和原生键值文本，包括金额、时间与多行位置的实际持久化结果。
 - 完整 `deploy:current` 通过：lint、typecheck、unit 23/23、Worker integration 6/6、frontend 23/23、production build 和 publication check；远程 D1 无待执行 migration，生产首页、D1 health 与 SPA deep link smoke 通过。部署后两次空输入均被新 adapter 确认为 JSON 字符串并识别出金额、商户、卡片、时间、交易名称和位置；因金额为空而按设计拒绝，未写入 D1。
+
+## Wallet 卡片显示与支付方式分析
+
+- 2026-08-13：对生产 D1 执行脱敏只读检查，确认最新真实 Wallet 交易已保存卡片原始名称，但 `payment_method_id` 为空；当前 1 个支付方式没有配置 `shortcut_match_text`，因此无法自动关联。未读取或输出真实卡名、金额、商户或 Token。
+- 手机交易行现在直接显示 Wallet 卡片名称；交易编辑器在未关联时显示“Wallet 识别：…（未关联）”，仍允许用户手动选择现有支付方式。
+- 分析页保留现有“支付方式”卡片，改为“已关联名称 → Wallet 原始卡名 → 未指定”的分组顺序，不再把不同未关联卡合并。新建支付方式默认使用显示名称作为 Shortcut 匹配文本。
+- 本地 lint、typecheck、unit/frontend 24/24、Worker integration 6/6、Playwright 6/6 可执行项通过（8 项按桌面/手机或视觉证据用途跳过），production build 与 publication check 通过。专项 iPhone 16 Pro WebKit 流程确认交易行、编辑器和支付分析同时正确，页面 `clientWidth/scrollWidth = 402/402`；桌面 `1440/1440`，目标交互无控制台 error/warning。
+- `deploy:current` 重新执行后 Cloudflare 发布成功，远程 D1 无待执行 migration，首页、D1 health 与 SPA deep link smoke 通过。部署后对最新真实 Wallet 交易执行脱敏只读 SQL，结果为 `has_wallet_card=1`、`grouped_by_wallet_card=1`、`grouped_as_unmapped=0`；未改写交易或公开卡名与金额。
 
 ## 最终状态与尚未完成
 
