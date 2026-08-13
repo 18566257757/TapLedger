@@ -1,0 +1,13 @@
+{
+  "name": "TapLedger",
+  "short_name": "TapLedger",
+  "description": "Private local-first personal ledger",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
