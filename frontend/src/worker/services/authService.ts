@@ -5,6 +5,7 @@ import { nowIso } from '../utils/time'
 interface UserRow {
   id: string
   username: string
+  display_name: string | null
   password_hash: string
 }
 
@@ -19,31 +20,40 @@ export class AuthService {
   async createAdmin(username: string, password: string, baseCurrency: string, timezone: string) {
     if (!(await this.setupRequired())) throw new HttpError(409, 'Administrator already exists')
     const now = nowIso()
-    const user = { id: crypto.randomUUID(), username: username.trim(), passwordHash: await hashPassword(password) }
+    const user = { id: crypto.randomUUID(), username: username.trim(), displayName: username.trim(), passwordHash: await hashPassword(password) }
     await this.database.batch([
       this.database.prepare(`
-        INSERT INTO users (id, username, password_hash, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(user.id, user.username, user.passwordHash, now, now),
+        INSERT INTO users (id, username, display_name, password_hash, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(user.id, user.username, user.displayName, user.passwordHash, now, now),
       this.database.prepare(`
         UPDATE app_settings
         SET base_currency = ?, timezone = ?, setup_completed = 1, updated_at = ?
         WHERE id = 1
       `).bind(baseCurrency.trim().toUpperCase(), timezone.trim(), now),
     ])
-    return { id: user.id, username: user.username }
+    return { id: user.id, username: user.username, display_name: user.displayName }
   }
 
   async authenticate(username: string, password: string) {
     const row = await this.database.prepare(`
-      SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE
+      SELECT id, username, display_name, password_hash FROM users WHERE username = ? COLLATE NOCASE
     `).bind(username.trim()).first<UserRow>()
     if (!row || !(await verifyPassword(row.password_hash, password))) throw new HttpError(401, 'Invalid username or password')
-    return { id: row.id, username: row.username }
+    return { id: row.id, username: row.username, display_name: row.display_name || row.username }
+  }
+
+  async updateDisplayName(userId: string, displayName: string) {
+    const value = displayName.trim()
+    const updatedAt = nowIso()
+    await this.database.prepare('UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?').bind(value, updatedAt, userId).run()
+    const row = await this.database.prepare('SELECT id, username, display_name, password_hash FROM users WHERE id = ?').bind(userId).first<UserRow>()
+    if (!row) throw new HttpError(404, 'User not found')
+    return { id: row.id, username: row.username, display_name: row.display_name || row.username }
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
-    const row = await this.database.prepare('SELECT id, username, password_hash FROM users WHERE id = ?').bind(userId).first<UserRow>()
+    const row = await this.database.prepare('SELECT id, username, display_name, password_hash FROM users WHERE id = ?').bind(userId).first<UserRow>()
     if (!row || !(await verifyPassword(row.password_hash, currentPassword))) throw new HttpError(400, 'Current password is incorrect')
     await this.database.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
       .bind(await hashPassword(newPassword), nowIso(), userId)

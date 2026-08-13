@@ -47,6 +47,7 @@ export const api = {
   me: () => request<User>('/api/v1/auth/me'),
   refreshCsrf: () => request<AuthResponse>('/api/v1/auth/csrf', { method: 'POST' }),
   logout: (csrf: string) => request<void>('/api/v1/auth/logout', { method: 'POST', headers: { 'X-CSRF-Token': csrf } }),
+  updateProfile: (displayName: string, csrf: string) => request<User>('/api/v1/auth/profile', { method: 'PATCH', headers: { 'X-CSRF-Token': csrf }, body: JSON.stringify({ display_name: displayName }) }),
 
   transactions: (params = '') => request<TransactionList>(`/api/v1/transactions${params}`),
   createTransaction: (payload: Record<string, unknown>, csrf: string) =>

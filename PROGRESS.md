@@ -37,9 +37,18 @@
 - 真实 Wallet 时间兼容 `2026年8月13日 15:06`、`2026/9/15 GMT+8 09:41:00` 与 `2026-09-15T09:41:00+08:00`；带偏移格式直接换算，无偏移中文格式使用实例时区。
 - 本地 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 和 publication check 均通过。重新部署后远程首页、D1 health 与 SPA deep link smoke 通过；未轮换生产 Token，未写入或删除生产交易。
 
+## 界面语言与昵称更新
+
+- 2026-08-13：所有用户可见的页面标题、设置卡片、交易筛选、复核状态、交易来源、确认框、离线提示和登录文案统一接入 `LocaleProvider`；简体中文、繁体中文与英文切换会立即更新当前页面。
+- D1 内置类别继续保存稳定英文标识，前端按当前语言显示对应名称；用户自建类别、商户和支付方式保持原文，不擅自翻译用户数据。
+- 手机分析页隐藏重复的次级眉题，只保留“分析 / Insights”主标题；桌面标题层级保持不变。
+- 偏好设置新增昵称输入与保存按钮。昵称通过独立 `display_name` 字段保存，支持中文且不会改变登录用户名；首页桌面问候即时更新。
+- 新增并在本地、远程 D1 成功应用 `0002_user_display_name.sql`；生产 Worker 已重新部署到原 URL，远程首页、D1 health 和 SPA 深链接检查通过。
+- 实测：lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、Playwright 核心流程 4/4、视觉证据 2/2、production build 与 publication check 全部通过。
+
 ## 最终状态与尚未完成
 
-- Cloudflare OAuth、远程 D1 创建、两个 migration、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。测试生成数据已清空，实例恢复为 `setup_required=true`。
+- Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。
 - GitHub 公共仓库 `18566257757/TapLedger` 已创建；`migration/cloudflare-d1` 是默认分支，迁移提交 `016194a` 和 CI 修复提交 `cd1ecc6` 已推送，README Deploy 按钮已指向该仓库，CI 已通过。
 - iPhone 上的 PWA、Shortcut 与 Wallet Personal Automation 真机操作。
 

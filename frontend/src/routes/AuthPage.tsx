@@ -20,7 +20,7 @@ export function AuthPage() {
 
   if (user) return <Navigate to="/" replace />
   if (isRestoring || setup.isLoading) {
-    return <div className="auth-screen"><div className="loading-line">Loading TapLedger...</div></div>
+    return <div className="auth-screen"><div className="loading-line">{t('loadingTapLedger')}</div></div>
   }
   const isSetup = setup.data?.setup_required ?? false
 
@@ -33,8 +33,8 @@ export function AuthPage() {
         ? await api.setupAdmin({ username, password, base_currency: baseCurrency, timezone })
         : await api.login(username, password)
       setAuthenticated(response.user, response.csrf_token)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Authentication failed')
+    } catch {
+      setError(t('authenticationFailed'))
     } finally {
       setBusy(false)
     }
@@ -47,20 +47,20 @@ export function AuthPage() {
         <p className="auth-brand">TapLedger</p>
         <h1>{isSetup ? t('setupPrivate') : t('welcomeBack')}</h1>
         <p>{isSetup ? t('firstUseHint') : t('ledgerReady')}</p>
-        <div className="local-status"><CheckCircle2 />Private D1 · {t('synced')}</div>
+        <div className="local-status"><CheckCircle2 />{t('privateDatabase')} · {t('synced')}</div>
         <form onSubmit={submit}>
-          <label>{t('username')}<input aria-label="Username" autoComplete="username" minLength={3} required value={username} onChange={(event) => setUsername(event.target.value)} /></label>
-          <label>{t('password')}<span className="password-control"><input aria-label="Password" type={showPassword ? 'text' : 'password'} autoComplete={isSetup ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? t('hidePassword') : t('showPassword')}>{showPassword ? <EyeOff /> : <Eye />}</button></span>{isSetup ? <small>{t('passwordHint')}</small> : null}</label>
+          <label>{t('username')}<input aria-label={t('username')} autoComplete="username" minLength={3} required value={username} onChange={(event) => setUsername(event.target.value)} /></label>
+          <label>{t('password')}<span className="password-control"><input aria-label={t('password')} type={showPassword ? 'text' : 'password'} autoComplete={isSetup ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? t('hidePassword') : t('showPassword')}>{showPassword ? <EyeOff /> : <Eye />}</button></span>{isSetup ? <small>{t('passwordHint')}</small> : null}</label>
           {isSetup ? (
             <div className="auth-grid">
-              <label>Base currency<select value={baseCurrency} onChange={(event) => setBaseCurrency(event.target.value)}>{['HKD', 'CNY', 'USD', 'CAD', 'JPY', 'EUR', 'GBP'].map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label>Timezone<input value={timezone} onChange={(event) => setTimezone(event.target.value)} /></label>
+              <label>{t('baseCurrency')}<select value={baseCurrency} onChange={(event) => setBaseCurrency(event.target.value)}>{['HKD', 'CNY', 'USD', 'CAD', 'JPY', 'EUR', 'GBP'].map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label>{t('timezone')}<input value={timezone} onChange={(event) => setTimezone(event.target.value)} /></label>
             </div>
           ) : null}
           {error ? <p className="form-error" role="alert">{error}</p> : null}
           <button className="primary-button auth-submit" disabled={busy}>{busy ? '...' : isSetup ? t('createAdmin') : t('signIn')}</button>
         </form>
-        <p className="auth-footnote">Self-hosted · No analytics · Private database</p>
+        <p className="auth-footnote">{t('selfHostedPrivacy')}</p>
       </section>
     </main>
   )

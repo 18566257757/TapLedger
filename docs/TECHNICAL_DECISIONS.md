@@ -16,6 +16,10 @@ UI 组件和 props 不承担后端转换。`frontend/src/lib/api.ts` 保留页�
 
 金额长期存为整数最小单位，不使用二进制浮点；币种使用 ISO 4217。D1 migrations 可版本化重放。恢复通过一次 D1 batch 执行删除和插入，并在写入前验证文档结构与密码。
 
+## 本地化与用户称呼
+
+界面语言由浏览器端 `LocaleProvider` 统一管理并持久化到当前设备。D1 的内置类别、交易来源和复核状态保留稳定英文标识，显示层按语言映射；用户输入的商户、支付方式和自建类别保持原文。昵称使用 `users.display_name`，与登录用 `username` 分离，避免修改称呼后影响认证。
+
 ## 公共与实例配置
 
 公开 `wrangler.jsonc` 不含实例标识；被忽略的 `wrangler.instance.jsonc` 只服务当前部署。Cloudflare Vite Plugin 通过 `CLOUDFLARE_VITE_WRANGLER_CONFIG_PATH` 选择实例配置。

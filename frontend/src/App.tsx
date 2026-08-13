@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './app/AuthProvider'
 import { AppShell } from './components/AppShell'
 import { OnlineStatus } from './components/OnlineStatus'
+import { useLocale } from './app/LocaleProvider'
 
 const AuthPage = lazy(() => import('./routes/AuthPage').then((module) => ({ default: module.AuthPage })))
 const HomePage = lazy(() => import('./routes/HomePage').then((module) => ({ default: module.HomePage })))
@@ -13,13 +14,15 @@ const TransactionsPage = lazy(() => import('./routes/TransactionsPage').then((mo
 
 function ProtectedShell() {
   const { user, isRestoring } = useAuth()
-  if (isRestoring) return <div className="auth-screen"><div className="loading-line">Loading TapLedger...</div></div>
+  const { t } = useLocale()
+  if (isRestoring) return <div className="auth-screen"><div className="loading-line">{t('loadingTapLedger')}</div></div>
   if (!user) return <Navigate to="/login" replace />
   return <><OnlineStatus /><AppShell /></>
 }
 
 export function App() {
-  return <Suspense fallback={<div className="auth-screen"><div className="loading-line">Loading view...</div></div>}><Routes>
+  const { t } = useLocale()
+  return <Suspense fallback={<div className="auth-screen"><div className="loading-line">{t('loadingView')}</div></div>}><Routes>
     <Route path="/login" element={<AuthPage />} />
     <Route element={<ProtectedShell />}>
       <Route index element={<HomePage />} />

@@ -64,6 +64,18 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
   await page.getByRole('link', { name: 'Export JSON' }).click()
   expect((await jsonDownload).suggestedFilename()).toMatch(/\.json$/u)
 
+  await page.getByLabel('Language').selectOption('zh-CN')
+  await expect(page.getByText('供 iPhone 快捷指令使用的私人接口。')).toBeVisible()
+  await expect(page.getByText('餐饮', { exact: true }).first()).toBeVisible()
+  await page.getByRole('textbox', { name: /昵称/ }).fill('中文昵称')
+  await page.getByRole('button', { name: '保存昵称' }).click()
+  await expect(page.getByText('昵称已更新。', { exact: true })).toBeVisible()
+  await page.goto('/')
+  await expect(page.locator('.home-heading h1')).toContainText('中文昵称')
+  await page.goto('/settings')
+  await page.getByLabel('语言').selectOption('en')
+  await expect(page.getByText('Private endpoint for your iPhone Shortcut.')).toBeVisible()
+
   await page.goto('/review')
   await expect(page.getByRole('heading', { name: 'Review queue' })).toBeVisible()
   const reviewItem = page.getByRole('heading', { name: reviewMerchant }).first()

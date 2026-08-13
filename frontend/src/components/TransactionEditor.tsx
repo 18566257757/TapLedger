@@ -24,7 +24,7 @@ const currencySymbols: Record<string, string> = { HKD: 'HK$', CNY: 'CN¥', USD: 
 export function TransactionEditor({ open, transaction, onClose }: TransactionEditorProps) {
   const queryClient = useQueryClient()
   const { csrfToken } = useAuth()
-  const { t } = useLocale()
+  const { t, categoryLabel, sourceLabel, transactionTypeLabel } = useLocale()
   const [type, setType] = useState<TransactionType>('expense')
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState('HKD')
@@ -79,7 +79,7 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!csrfToken) throw new Error('Your session needs to be refreshed')
+      if (!csrfToken) throw new Error(t('sessionExpired'))
       const payload = {
         type,
         amount,
@@ -106,12 +106,12 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
       ])
       onClose()
     },
-    onError: (error) => setMessage(error instanceof Error ? error.message : 'Could not save transaction'),
+    onError: () => setMessage(t('saveFailed')),
   })
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      if (!transaction || !csrfToken) throw new Error('Your session needs to be refreshed')
+      if (!transaction || !csrfToken) throw new Error(t('sessionExpired'))
       await api.deleteTransaction(transaction.id, csrfToken)
     },
     onSuccess: async () => {
@@ -120,7 +120,7 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
       await queryClient.invalidateQueries({ queryKey: ['review'] })
       onClose()
     },
-    onError: (error) => setMessage(error instanceof Error ? error.message : 'Could not delete transaction'),
+    onError: () => setMessage(t('deleteFailed')),
   })
 
   if (!open) return null
@@ -129,7 +129,7 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
     event.preventDefault()
     if (!navigator.onLine && !transaction) {
       enqueueTransaction({ type, amount, currency, merchant, category_id: categoryId || null, payment_method_id: paymentMethodId || null, transaction_date: new Date(transactionDate).toISOString(), purpose: purpose || null, note: note || null, location_name: locationName || null, latitude: latitude || null, longitude: longitude || null, is_excluded_from_analytics: excluded })
-      setMessage('Saved on this device. Confirm sync when the Cloud service is online.')
+      setMessage(t('savedOffline'))
       return
     }
     mutation.mutate()
@@ -141,26 +141,26 @@ export function TransactionEditor({ open, transaction, onClose }: TransactionEdi
         <span className="sheet-grabber" aria-hidden="true" />
         <header className="editor-header"><h2 id="editor-title">{transaction ? t('editTransaction') : t('addTransaction')}</h2><button className="icon-button" onClick={onClose} aria-label={t('closeEditor')}><X /></button></header>
         <form onSubmit={submit} className="editor-form">
-          <div className="field-row type-field" role="group" aria-label={t('type')}><ArrowLeftRight /><span>{t('type')}</span><div className="type-picker desktop-type-picker">{(['expense', 'income', 'refund', 'transfer', 'adjustment'] as const).map((item) => <button type="button" key={item} className={type === item ? 'selected' : ''} onClick={() => setType(item)}>{item === 'expense' ? t('expense') : item === 'income' ? t('income') : item === 'refund' ? t('refund') : item === 'transfer' ? t('transfers') : 'Adjustment'}</button>)}</div><div className="type-picker mobile-primary-type-picker">{(['expense', 'income'] as const).map((item) => <button type="button" key={item} className={type === item ? 'selected' : ''} onClick={() => setType(item)}>{t(item)}</button>)}</div></div>
+          <div className="field-row type-field" role="group" aria-label={t('type')}><ArrowLeftRight /><span>{t('type')}</span><div className="type-picker desktop-type-picker">{(['expense', 'income', 'refund', 'transfer', 'adjustment'] as const).map((item) => <button type="button" key={item} className={type === item ? 'selected' : ''} onClick={() => setType(item)}>{transactionTypeLabel(item)}</button>)}</div><div className="type-picker mobile-primary-type-picker">{(['expense', 'income'] as const).map((item) => <button type="button" key={item} className={type === item ? 'selected' : ''} onClick={() => setType(item)}>{transactionTypeLabel(item)}</button>)}</div></div>
           <label className="field-row"><WalletCards /><span>{t('amount')}</span><span className="amount-control"><small>{currencySymbols[currency] ?? currency}</small><input ref={amountInput} required inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" /></span></label>
           <label className="field-row"><ArrowLeftRight /><span>{t('currency')}</span><select value={currency} onChange={(event) => setCurrency(event.target.value)}>{['HKD', 'CNY', 'USD', 'CAD', 'JPY', 'EUR', 'GBP'].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="field-row"><Store /><span>{t('merchant')}</span><input required value={merchant} onChange={(event) => setMerchant(event.target.value)} placeholder="e.g. STARBUCKS" /></label>
-          <label className="field-row"><Tags /><span>{t('category')}</span><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">{t('selectCategory')}</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label className="field-row"><Store /><span>{t('merchant')}</span><input required value={merchant} onChange={(event) => setMerchant(event.target.value)} placeholder={t('merchantExample')} /></label>
+          <label className="field-row"><Tags /><span>{t('category')}</span><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">{t('selectCategory')}</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{categoryLabel(item.name, item.is_system)}</option>)}</select></label>
           <label className="field-row"><WalletCards /><span>{t('paymentMethod')}</span><select value={paymentMethodId} onChange={(event) => setPaymentMethodId(event.target.value)}><option value="">{t('selectMethod')}</option>{paymentMethods.data?.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select></label>
           <label className="field-row"><CalendarDays /><span>{t('dateTime')}</span><input required type="datetime-local" value={transactionDate} onChange={(event) => setTransactionDate(event.target.value)} /></label>
           <label className="field-row"><Tags /><span>{t('purpose')}</span><input value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder={t('optional')} /></label>
           <label className="field-row note-row"><FileText /><span>{t('note')}</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder={t('optional')} /></label>
           <button className="details-toggle" type="button" aria-expanded={detailsOpen} onClick={() => setDetailsOpen((value) => !value)}><span>{detailsOpen ? t('hideInformation') : t('moreInformation')}</span><ChevronDown className={detailsOpen ? 'rotated' : ''} /></button>
           {detailsOpen ? <div className="editor-details">
-            <label className="field-row mobile-extra-type"><ArrowLeftRight /><span>{t('type')}</span><select value={type} onChange={(event) => setType(event.target.value as TransactionType)}>{(['expense', 'income', 'refund', 'transfer', 'adjustment'] as const).map((item) => <option key={item} value={item}>{item === 'expense' ? t('expense') : item === 'income' ? t('income') : item === 'refund' ? t('refund') : item === 'transfer' ? t('transfers') : 'Adjustment'}</option>)}</select></label>
+            <label className="field-row mobile-extra-type"><ArrowLeftRight /><span>{t('type')}</span><select value={type} onChange={(event) => setType(event.target.value as TransactionType)}>{(['expense', 'income', 'refund', 'transfer', 'adjustment'] as const).map((item) => <option key={item} value={item}>{transactionTypeLabel(item)}</option>)}</select></label>
             <label className="field-row"><MapPin /><span>{t('location')}</span><input value={locationName} onChange={(event) => setLocationName(event.target.value)} placeholder={t('optional')} /></label>
             <div className="coordinate-grid"><label><span>{t('latitude')}</span><input inputMode="decimal" value={latitude} onChange={(event) => setLatitude(event.target.value)} placeholder="22.3193" /></label><label><span>{t('longitude')}</span><input inputMode="decimal" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="114.1694" /></label></div>
             <label className="toggle-row"><Ban /><span>{t('excludeAnalytics')}</span><input type="checkbox" checked={excluded} onChange={(event) => setExcluded(event.target.checked)} /></label>
-            <div className="source-row"><Radio /><span>{t('source')}</span><strong>{transaction?.source.replaceAll('_', ' ') ?? 'manual pwa'}</strong></div>
+            <div className="source-row"><Radio /><span>{t('source')}</span><strong>{sourceLabel(transaction?.source ?? 'manual_pwa')}</strong></div>
           </div> : null}
           {message ? <p className="form-message" role="status">{message}</p> : null}
           <div className="editor-actions">
-            {transaction ? <button type="button" className="danger-button" disabled={deleteMutation.isPending} onClick={() => window.confirm('Delete this transaction? This cannot be undone.') && deleteMutation.mutate()}><Trash2 />{t('delete')}</button> : null}
+            {transaction ? <button type="button" className="danger-button" disabled={deleteMutation.isPending} onClick={() => window.confirm(t('deleteTransactionConfirm')) && deleteMutation.mutate()}><Trash2 />{t('delete')}</button> : null}
             <button className="primary-button save-button" disabled={mutation.isPending}>{mutation.isPending ? t('saving') : t('saveTransaction')}</button>
           </div>
         </form>

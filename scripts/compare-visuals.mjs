@@ -13,7 +13,9 @@ const differenceDirectory = join(projectRoot, process.env.TAPLEDGER_VISUAL_DIFF 
 await mkdir(differenceDirectory, { recursive: true })
 const baselineNames = (await readdir(baselineDirectory)).filter((name) => name.endsWith('.png')).sort()
 const afterNames = (await readdir(afterDirectory)).filter((name) => name.endsWith('.png')).sort()
-if (baselineNames.join('\n') !== afterNames.join('\n')) throw new Error('Visual baseline and after-cloudflare file sets differ')
+const missingAfter = baselineNames.filter((name) => !afterNames.includes(name))
+const additionalEvidence = afterNames.filter((name) => !baselineNames.includes(name))
+if (missingAfter.length) throw new Error(`Visual after-cloudflare evidence is missing baseline files: ${missingAfter.join(', ')}`)
 
 const results = []
 for (const name of baselineNames) {
@@ -72,5 +74,5 @@ for (const name of baselineNames) {
   })
 }
 
-console.log(JSON.stringify(results, null, 2))
+console.log(JSON.stringify({ compared: results, additionalEvidence }, null, 2))
 if (results.some((item) => !item.sameDimensions)) process.exitCode = 1

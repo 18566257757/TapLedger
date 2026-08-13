@@ -49,6 +49,11 @@ describe('TapLedger Worker API with D1', () => {
     expect((await request('/api/v1/auth/me', {}, state)).status).toBe(200)
     expect((await request('/api/v1/auth/logout', { method: 'POST' }, state)).status).toBe(403)
 
+    const profileResponse = await mutate('/api/v1/auth/profile', { display_name: '小明' }, state, 'PATCH')
+    expect(profileResponse.status, await profileResponse.clone().text()).toBe(200)
+    expect(await profileResponse.json()).toMatchObject({ username: 'owner', display_name: '小明' })
+    expect(await (await request('/api/v1/auth/me', {}, state)).json()).toMatchObject({ display_name: '小明' })
+
     const categoriesResponse = await request('/api/v1/categories', {}, state)
     expect(categoriesResponse.status, await categoriesResponse.clone().text()).toBe(200)
     const categories = await categoriesResponse.json<Array<{ id: string; name: string }>>()

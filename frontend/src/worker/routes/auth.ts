@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import type { AppEnvironment } from '../types'
 import { AuthService } from '../services/authService'
 import { SessionService } from '../services/sessionService'
-import { changePasswordSchema, loginSchema, setupSchema } from '../schemas'
+import { changePasswordSchema, loginSchema, profileUpdateSchema, setupSchema } from '../schemas'
 import { clearSessionCookie, requireCsrf, requireSession, setSessionCookie } from '../middleware/auth'
 import { parseBody } from './helpers'
 
@@ -29,6 +29,11 @@ authRoutes.post('/auth/login', async (c) => {
 })
 
 authRoutes.get('/auth/me', requireSession, (c) => c.json(c.get('auth').user))
+
+authRoutes.patch('/auth/profile', requireSession, requireCsrf, async (c) => {
+  const payload = await parseBody(c, profileUpdateSchema)
+  return c.json(await new AuthService(c.env.DB).updateDisplayName(c.get('auth').user.id, payload.display_name))
+})
 
 authRoutes.post('/auth/csrf', requireSession, async (c) => {
   const auth = c.get('auth')

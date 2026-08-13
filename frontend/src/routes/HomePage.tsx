@@ -24,9 +24,9 @@ function monthInputValue(date = new Date()) {
   return local.toISOString().slice(0, 7)
 }
 
-function previousMonthRange(date: Date) {
+function previousMonthRange(date: Date, locale: string) {
   const previous = new Date(date.getFullYear(), date.getMonth() - 1, 1)
-  return monthRange(previous)
+  return monthRange(previous, locale)
 }
 
 export function HomePage() {
@@ -36,8 +36,8 @@ export function HomePage() {
   const [editing, setEditing] = useState<Transaction | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(monthInputValue)
   const selectedDate = useMemo(() => new Date(`${selectedMonth}-01T12:00:00`), [selectedMonth])
-  const range = useMemo(() => monthRange(selectedDate), [selectedDate, locale])
-  const previousRange = useMemo(() => previousMonthRange(selectedDate), [selectedDate, locale])
+  const range = useMemo(() => monthRange(selectedDate, locale), [selectedDate, locale])
+  const previousRange = useMemo(() => previousMonthRange(selectedDate, locale), [selectedDate, locale])
   const transactions = useQuery({ queryKey: ['transactions', 'home'], queryFn: () => api.transactions('?page_size=5') })
   const reviews = useQuery({ queryKey: ['review'], queryFn: api.review })
   const summary = useQuery({ queryKey: ['analytics', 'summary', range.from, range.to], queryFn: () => api.analyticsSummary(range.from, range.to) })
@@ -74,7 +74,7 @@ export function HomePage() {
       </header>
 
       <header className="page-heading home-heading">
-        <div><h1>{t(greetingKey())}, {user?.username}</h1><MonthControl label={range.label} value={selectedMonth} onChange={setSelectedMonth} /></div>
+        <div><h1>{t(greetingKey())}, {user?.display_name ?? user?.username}</h1><MonthControl label={range.label} value={selectedMonth} onChange={setSelectedMonth} /></div>
       </header>
 
       <div className="home-overview">
@@ -125,5 +125,6 @@ export function HomePage() {
 }
 
 function MonthControl({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="month-control"><span>{label}</span><ChevronDown /><input type="month" aria-label="Select month" value={value} onChange={(event) => onChange(event.target.value)} /></label>
+  const { t } = useLocale()
+  return <label className="month-control"><span>{label}</span><ChevronDown /><input type="month" aria-label={t('selectMonth')} value={value} onChange={(event) => onChange(event.target.value)} /></label>
 }

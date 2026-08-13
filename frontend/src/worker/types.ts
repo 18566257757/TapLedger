@@ -7,6 +7,7 @@ export interface AuthenticatedSession {
   user: {
     id: string
     username: string
+    display_name: string
   }
   session: {
     id: string

@@ -127,6 +127,21 @@ test('mobile UI freeze baseline', async ({ page }) => {
   await capture(page, 'mobile-light-transaction-editor')
   await page.getByRole('button', { name: 'Close editor' }).click()
 
+  await page.evaluate(() => localStorage.setItem('tapledger-language', 'zh-CN'))
+  await page.goto('/insights')
+  await expect(page.getByRole('heading', { name: '分析', exact: true })).toBeVisible()
+  await expect(page.locator('.insights-heading .eyebrow')).toBeHidden()
+  await capture(page, 'mobile-light-insights-zh-CN', true)
+
+  await page.goto('/settings')
+  await expect(page.getByRole('heading', { name: '设置', exact: true })).toBeVisible()
+  await expect(page.getByText('供 iPhone 快捷指令使用的私人接口。')).toBeVisible()
+  await expect(page.locator('.setting-card').filter({ hasText: '15 个启用类别' }).locator('.simple-list span').filter({ hasText: '餐饮' }).first()).toBeVisible()
+  await expect(page.getByText('昵称', { exact: true }).first()).toBeVisible()
+  await capture(page, 'mobile-light-settings-zh-CN', true)
+
+  await page.evaluate(() => localStorage.setItem('tapledger-language', 'en'))
+
   await page.goto('/review')
   await expect(page.getByRole('heading', { name: 'Review queue' })).toBeVisible()
   await capture(page, 'mobile-light-review')

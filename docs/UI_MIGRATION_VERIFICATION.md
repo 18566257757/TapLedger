@@ -30,6 +30,17 @@
 
 现有布局、导航、字体、字号、字重、间距、圆角、阴影、图标、图表类型、卡片、表单、按钮、主题、响应式断点、页面顺序和产品交互均保留。不存在有意的视觉重设计；仅保留任务允许的技术文案和动态数据差异。
 
+## 2026-08-13 语言与昵称专项复核
+
+- 手机 viewport：`390 × 844`。
+- 中文 Settings：自动化说明、按钮、15 个内置类别、内置标记、备份、部署状态、偏好设置、语言选项和昵称表单均显示中文。
+- 英文 Settings：切换为英文后，上述区域全部恢复英文；检查未发现残留中文界面标签。
+- 手机 Insights：`.insights-heading .eyebrow` 计算样式为 `display: none`，可见标题仅为“分析”；桌面仍保留原有眉题与主标题层级。
+- 中文系统数据：`Dining`、`Uncategorized`、`manual_pwa`、`missing_information`、`Unmapped` 等稳定标识分别显示为“餐饮”“未分类”“手动录入”“信息缺失”“未指定”。
+- 昵称：保存“测试昵称”后，桌面首页问候即时显示“下午好, 测试昵称”；登录用户名未改变。
+- 新增证据：`tests/visual-after-cloudflare/mobile-light-insights-zh-CN.png` 与 `tests/visual-after-cloudflare/mobile-light-settings-zh-CN.png`。
+- `npm run visual:compare` 继续比较原有 13 组基准，并将新增中文截图列为额外证据。全页 Transactions、Review 的高度会随本地测试交易数量变化；Settings 因用户明确要求新增昵称控件而有预期高度变化，不将其误报为视觉重设计。
+
 ## 远程 Worker 复核
 
 实际部署后使用同一演示数据、viewport、路由和主题在 workers.dev 实例重新捕获 13 张截图，证据保存于被 Git 忽略的 `test-results/remote-cloudflare/`，避免把当前用户 Worker URL 发布到公共仓库。

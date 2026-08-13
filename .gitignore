@@ -18,6 +18,7 @@ frontend/coverage/
 playwright-report/
 frontend/playwright-report/
 test-results/
+tests/visual-diff-localization/
 frontend/test-results/
 .wrangler/
 wrangler.instance.jsonc

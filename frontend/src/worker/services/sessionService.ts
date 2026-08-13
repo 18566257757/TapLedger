@@ -6,6 +6,7 @@ interface SessionRow {
   session_id: string
   user_id: string
   username: string
+  display_name: string | null
   csrf_token_hash: string
   expires_at: string
 }
@@ -19,7 +20,7 @@ export interface SessionCredentials {
 export class SessionService {
   constructor(private readonly database: D1Database) {}
 
-  async create(user: { id: string; username: string }, ttlHours = 24 * 7): Promise<SessionCredentials> {
+  async create(user: { id: string; username: string; display_name: string }, ttlHours = 24 * 7): Promise<SessionCredentials> {
     const token = newSecret(48)
     const csrfToken = newSecret(32)
     const createdAt = nowIso()
@@ -42,7 +43,7 @@ export class SessionService {
 
   async getActive(token: string): Promise<AuthenticatedSession | null> {
     const row = await this.database.prepare(`
-      SELECT s.id AS session_id, s.user_id, u.username, s.csrf_token_hash, s.expires_at
+      SELECT s.id AS session_id, s.user_id, u.username, u.display_name, s.csrf_token_hash, s.expires_at
       FROM user_sessions s
       JOIN users u ON u.id = s.user_id
       WHERE s.token_hash = ? AND s.revoked_at IS NULL AND s.expires_at > ?
@@ -50,7 +51,7 @@ export class SessionService {
     `).bind(await sha256Hex(token), nowIso()).first<SessionRow>()
     if (!row) return null
     return {
-      user: { id: row.user_id, username: row.username },
+      user: { id: row.user_id, username: row.username, display_name: row.display_name || row.username },
       session: { id: row.session_id, csrfTokenHash: row.csrf_token_hash, expiresAt: row.expires_at },
     }
   }

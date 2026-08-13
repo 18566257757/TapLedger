@@ -22,7 +22,7 @@ export function TransactionsPage() {
   const [minAmount, setMinAmount] = useState('')
   const [maxAmount, setMaxAmount] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const { t } = useLocale()
+  const { t, categoryLabel, sourceLabel, reviewStatusLabel } = useLocale()
   const [editing, setEditing] = useState<Transaction | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
   const params = useMemo(() => {
@@ -51,24 +51,24 @@ export function TransactionsPage() {
   return (
     <div className="page">
       <header className="page-heading"><div><p className="eyebrow">{t('ledger')}</p><h1>{t('transactions')}</h1><p>{t('transactionSubtitle')}</p></div><button className="primary-button" onClick={() => { setEditing(null); setEditorOpen(true) }}><Plus />{t('addTransaction')}</button></header>
-      <button className="mobile-filter-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((value) => !value)}><span><SlidersHorizontal />Filters{activeFilterCount ? <b>{activeFilterCount}</b> : null}</span><ChevronDown className={filtersOpen ? 'rotated' : ''} /></button>
-      <section className={`filter-bar card${filtersOpen ? ' filters-open' : ''}`} aria-label="Transaction filters">
+      <button className="mobile-filter-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((value) => !value)}><span><SlidersHorizontal />{t('filters')}{activeFilterCount ? <b>{activeFilterCount}</b> : null}</span><ChevronDown className={filtersOpen ? 'rotated' : ''} /></button>
+      <section className={`filter-bar card${filtersOpen ? ' filters-open' : ''}`} aria-label={t('transactionFilters')}>
         <label className="search-control"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('searchPlaceholder')} /></label>
-        <label className="select-control"><Filter /><select aria-label="Transaction type" value={type} onChange={(event) => setType(event.target.value)}><option value="">{t('allTypes')}</option><option value="expense">{t('expenses')}</option><option value="income">{t('income')}</option><option value="refund">{t('refunds')}</option><option value="transfer">{t('transfers')}</option></select></label>
-        <select aria-label="Sort transactions" value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">{t('newest')}</option><option value="oldest">{t('oldest')}</option><option value="amount_high">{t('highest')}</option><option value="amount_low">{t('lowest')}</option></select>
-        <select aria-label="Category" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">{t('categories')}</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-        <select aria-label="Payment method" value={paymentMethodId} onChange={(event) => setPaymentMethodId(event.target.value)}><option value="">{t('paymentMethods')}</option>{methods.data?.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>
-        <select aria-label="Source" value={source} onChange={(event) => setSource(event.target.value)}><option value="">{t('source')}</option><option value="wallet_shortcut">Wallet Shortcut</option><option value="manual_pwa">Manual PWA</option><option value="simulator">Simulator</option><option value="csv_import">CSV</option></select>
-        <select aria-label="Review status" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}><option value="">{t('needsReview')}</option><option value="confirmed">Confirmed</option><option value="needs_review">Needs review</option><option value="missing_information">Missing information</option><option value="duplicate_candidate">Duplicate candidate</option></select>
-        <select aria-label="Currency" value={currency} onChange={(event) => setCurrency(event.target.value)}><option value="">{t('currency')}</option>{['HKD', 'CNY', 'USD', 'CAD', 'JPY', 'EUR', 'GBP'].map((item) => <option key={item}>{item}</option>)}</select>
+        <label className="select-control"><Filter /><select aria-label={t('transactionType')} value={type} onChange={(event) => setType(event.target.value)}><option value="">{t('allTypes')}</option><option value="expense">{t('expenses')}</option><option value="income">{t('income')}</option><option value="refund">{t('refunds')}</option><option value="transfer">{t('transfers')}</option></select></label>
+        <select aria-label={t('sortTransactions')} value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">{t('newest')}</option><option value="oldest">{t('oldest')}</option><option value="amount_high">{t('highest')}</option><option value="amount_low">{t('lowest')}</option></select>
+        <select aria-label={t('category')} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">{t('categories')}</option>{categories.data?.map((item) => <option key={item.id} value={item.id}>{categoryLabel(item.name, item.is_system)}</option>)}</select>
+        <select aria-label={t('paymentMethod')} value={paymentMethodId} onChange={(event) => setPaymentMethodId(event.target.value)}><option value="">{t('paymentMethods')}</option>{methods.data?.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>
+        <select aria-label={t('source')} value={source} onChange={(event) => setSource(event.target.value)}><option value="">{t('source')}</option><option value="wallet_shortcut">{sourceLabel('wallet_shortcut')}</option><option value="manual_pwa">{sourceLabel('manual_pwa')}</option><option value="simulator">{sourceLabel('simulator')}</option><option value="csv_import">{sourceLabel('csv_import')}</option></select>
+        <select aria-label={t('reviewStatus')} value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}><option value="">{t('reviewStatus')}</option><option value="confirmed">{reviewStatusLabel('confirmed')}</option><option value="needs_review">{reviewStatusLabel('needs_review')}</option><option value="missing_information">{reviewStatusLabel('missing_information')}</option><option value="duplicate_candidate">{reviewStatusLabel('duplicate_candidate')}</option></select>
+        <select aria-label={t('currency')} value={currency} onChange={(event) => setCurrency(event.target.value)}><option value="">{t('currency')}</option>{['HKD', 'CNY', 'USD', 'CAD', 'JPY', 'EUR', 'GBP'].map((item) => <option key={item}>{item}</option>)}</select>
         <label className="date-filter">{t('from')}<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label className="date-filter">{t('to')}<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
-        <label className="date-filter">Minimum amount<input type="number" min="0" step="0.01" inputMode="decimal" value={minAmount} onChange={(event) => setMinAmount(event.target.value)} /></label>
-        <label className="date-filter">Maximum amount<input type="number" min="0" step="0.01" inputMode="decimal" value={maxAmount} onChange={(event) => setMaxAmount(event.target.value)} /></label>
-        {activeFilterCount ? <button className="clear-filters" type="button" onClick={clearFilters}><X />Clear filters</button> : null}
+        <label className="date-filter">{t('minimumAmount')}<input type="number" min="0" step="0.01" inputMode="decimal" value={minAmount} onChange={(event) => setMinAmount(event.target.value)} /></label>
+        <label className="date-filter">{t('maximumAmount')}<input type="number" min="0" step="0.01" inputMode="decimal" value={maxAmount} onChange={(event) => setMaxAmount(event.target.value)} /></label>
+        {activeFilterCount ? <button className="clear-filters" type="button" onClick={clearFilters}><X />{t('clearFilters')}</button> : null}
       </section>
       <section className="card transaction-list-card">
-        <div className="section-title"><div><h2>{t('allActivity')}</h2><p>{query.data ? `${query.data.total} ${t('transactions')}` : '...'}</p></div></div>
+        <div className="section-title"><div><h2>{t('allActivity')}</h2><p>{query.data ? `${query.data.total} ${t('transactionsCount')}` : '...'}</p></div></div>
         {query.data?.items.length ? query.data.items.map((item) => <TransactionRow key={item.id} transaction={item} onClick={() => { setEditing(item); setEditorOpen(true) }} />) : !query.isLoading ? <EmptyState icon={ReceiptText} title={t('noMatches')} body={t('noMatchesBody')} /> : null}
       </section>
       <TransactionEditor open={editorOpen} transaction={editing} onClose={() => { setEditorOpen(false); setEditing(null) }} />

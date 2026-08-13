@@ -243,6 +243,9 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
 .healthy { color: var(--positive); }
 .preference-field { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
 .preference-field select { min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; color: var(--text); background: var(--surface); }
+.preference-nickname { align-items: end; }
+.preference-nickname label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
+.preference-nickname label > span { color: var(--text); font-size: 13px; font-weight: 650; }
 .danger-zone { padding: 13px; border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line)); border-radius: 10px; }
 .danger-zone summary { color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer; }
 .danger-zone p { color: var(--muted); font-size: 11px; line-height: 1.5; }
@@ -344,6 +347,7 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .page { width: 100%; padding: calc(22px + env(safe-area-inset-top)) 20px 40px; }
   .page-heading { margin-bottom: 25px; }
   .page-heading h1 { font-size: 29px; }
+  .insights-heading .eyebrow { display: none; }
   .page-heading > .primary-button { display: none; }
   .mobile-home-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
   .mobile-home-header > h1 { margin: 0; font-size: 27px; line-height: 1; letter-spacing: -.045em; }

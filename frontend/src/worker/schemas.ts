@@ -25,6 +25,10 @@ export const changePasswordSchema = z.object({
   new_password: z.string().min(12).max(256),
 })
 
+export const profileUpdateSchema = z.object({
+  display_name: z.string().trim().min(1).max(80),
+})
+
 export const shortcutTransactionSchema = z.preprocess(adaptShortcutPayload, z.object({
   schema_version: z.literal(1).default(1),
   client_event_id: z.string().trim().min(1).max(64).optional(),

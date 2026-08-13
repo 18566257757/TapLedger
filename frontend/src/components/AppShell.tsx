@@ -14,8 +14,8 @@ export function AppShell() {
   ]
   return (
     <div className="app-shell">
-      <aside className="sidebar" aria-label="Primary navigation">
-        <NavLink to="/" className="brand" aria-label="TapLedger Home">TapLedger</NavLink>
+      <aside className="sidebar" aria-label={t('primaryNavigation')}>
+        <NavLink to="/" className="brand" aria-label={t('tapLedgerHome')}>TapLedger</NavLink>
         <nav className="sidebar-nav">
           {navigation.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
@@ -25,7 +25,7 @@ export function AppShell() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div className="theme-switch" aria-label="Color theme">
+          <div className="theme-switch" aria-label={t('colorTheme')}>
             <button className={theme === 'light' ? 'selected' : ''} onClick={() => setTheme('light')} aria-label={t('lightMode')}><Sun /></button>
             <button className={theme === 'dark' ? 'selected' : ''} onClick={() => setTheme('dark')} aria-label={t('darkMode')}><Moon /></button>
           </div>
@@ -33,7 +33,7 @@ export function AppShell() {
         </div>
       </aside>
       <main className="main-canvas"><Outlet /></main>
-      <nav className="mobile-nav" aria-label="Primary navigation">
+      <nav className="mobile-nav" aria-label={t('primaryNavigation')}>
         {navigation.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => `mobile-nav-item${isActive ? ' active' : ''}`}>
             <Icon aria-hidden="true" />

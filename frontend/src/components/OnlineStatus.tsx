@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { WifiOff } from 'lucide-react'
+import { useLocale } from '../app/LocaleProvider'
 
 export function OnlineStatus() {
+  const { t } = useLocale()
   const [online, setOnline] = useState(navigator.onLine)
   useEffect(() => {
     const update = () => setOnline(navigator.onLine)
@@ -14,7 +16,7 @@ export function OnlineStatus() {
   }, [])
   return online ? null : (
     <div className="offline-banner" role="status">
-      <WifiOff aria-hidden="true" /> Cloud service unavailable. New manual transactions stay on this device until you confirm sync.
+      <WifiOff aria-hidden="true" /> {t('cloudUnavailable')}
     </div>
   )
 }

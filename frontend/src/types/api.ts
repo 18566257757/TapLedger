@@ -5,6 +5,7 @@ export type TransactionSource = 'wallet_shortcut' | 'manual_pwa' | 'csv_import' 
 export interface User {
   id: string
   username: string
+  display_name: string
 }
 
 export interface AuthResponse {

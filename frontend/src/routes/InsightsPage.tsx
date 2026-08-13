@@ -15,7 +15,7 @@ function dateInputValue(date: Date) {
 }
 
 export function InsightsPage() {
-  const { t, locale } = useLocale()
+  const { t, locale, categoryLabel } = useLocale()
   const current = useMemo(() => monthRange(), [])
   const [from, setFrom] = useState(current.from.slice(0, 10))
   const [to, setTo] = useState(dateInputValue(new Date()))
@@ -41,13 +41,13 @@ export function InsightsPage() {
   ] })
   const [summary, categories, merchants, paymentMethods] = results
   const currency = summary.data?.currencies[0]?.currency ?? 'HKD'
-  const categoryData = (categories.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ name: item.label, value: item.amount_minor }))
+  const categoryData = (categories.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ name: categoryLabel(item.label), value: item.amount_minor }))
   const merchantData = (merchants.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 8).map((item) => ({ name: item.label, value: item.amount_minor }))
-  const methodData = (paymentMethods.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6)
+  const methodData = (paymentMethods.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ ...item, label: item.label === 'Unmapped' ? t('unmapped') : item.label }))
 
   return (
     <div className="page">
-      <header className="page-heading"><div><p className="eyebrow">{t('analytics')}</p><h1>{t('insights')}</h1><p>{t('insightsSubtitle')}</p></div><div className="date-range"><label>{t('period')}<select value={period} onChange={(event) => selectPeriod(event.target.value as Period)}><option value="day">{t('day')}</option><option value="month">{t('month')}</option><option value="year">{t('year')}</option><option value="custom">{t('custom')}</option></select></label><label>{t('from')}<input type="date" value={from} onChange={(event) => { setPeriod('custom'); setFrom(event.target.value) }} /></label><label>{t('to')}<input type="date" value={to} onChange={(event) => { setPeriod('custom'); setTo(event.target.value) }} /></label></div></header>
+      <header className="page-heading insights-heading"><div><p className="eyebrow">{t('analytics')}</p><h1>{t('insights')}</h1><p>{t('insightsSubtitle')}</p></div><div className="date-range"><label>{t('period')}<select value={period} onChange={(event) => selectPeriod(event.target.value as Period)}><option value="day">{t('day')}</option><option value="month">{t('month')}</option><option value="year">{t('year')}</option><option value="custom">{t('custom')}</option></select></label><label>{t('from')}<input type="date" value={from} onChange={(event) => { setPeriod('custom'); setFrom(event.target.value) }} /></label><label>{t('to')}<input type="date" value={to} onChange={(event) => { setPeriod('custom'); setTo(event.target.value) }} /></label></div></header>
       {summary.data?.multiple_currencies ? <div className="info-banner">{t('multipleCurrencies')}</div> : null}
       <div className="metric-grid">
         {(summary.data?.currencies ?? []).map((item) => <article className="card metric-card" key={item.currency}><span>{item.currency} {t('netSpending')}</span><strong>{formatMoney(item.net_spending_minor, item.currency, locale)}</strong><small>{item.transaction_count} {t('transactionsCount')} · {t('largest')} {formatMoney(item.largest_minor, item.currency, locale)} · {t('average')} {formatMoney(item.transaction_count ? Math.round(item.net_spending_minor / item.transaction_count) : 0, item.currency, locale)}</small></article>)}
