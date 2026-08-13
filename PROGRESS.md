@@ -105,6 +105,12 @@
 - 本地 lint、typecheck、unit/frontend 24/24、Worker integration 6/6、Playwright 6/6 可执行项通过（8 项按桌面/手机或视觉证据用途跳过），production build 与 publication check 通过。专项 iPhone 16 Pro WebKit 流程确认交易行、编辑器和支付分析同时正确，页面 `clientWidth/scrollWidth = 402/402`；桌面 `1440/1440`，目标交互无控制台 error/warning。
 - `deploy:current` 重新执行后 Cloudflare 发布成功，远程 D1 无待执行 migration，首页、D1 health 与 SPA deep link smoke 通过。部署后对最新真实 Wallet 交易执行脱敏只读 SQL，结果为 `has_wallet_card=1`、`grouped_by_wallet_card=1`、`grouped_as_unmapped=0`；未改写交易或公开卡名与金额。
 
+## GitHub 默认分支保护
+
+- 2026-08-13：为 GitHub 默认分支创建并启用 `Protect migration/cloudflare-d1` ruleset，目标使用 GitHub 的 Default branch 条件，当前实际匹配 `migration/cloudflare-d1`。
+- 规则只启用 `Restrict deletions` 与 `Block force pushes`；未启用 Pull Request、状态检查、签名提交或部署门禁，因此继续允许当前非强制的直接推送维护流程。
+- 在 GitHub 规则详情页复核为 Active、适用 1 个目标；仓库首页原有的 “branch isn't protected” 提示与 “Protect this branch” 入口均已消失。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。
