@@ -20,9 +20,9 @@
 | --- | --- |
 | 本地 D1 migrations | 无待执行迁移 |
 | lint / typecheck | 通过 |
-| unit | 6 个文件，21/21 通过 |
+| unit | 7 个文件，23/23 通过 |
 | Worker integration | 1 个文件，6/6 通过；含中文 Shortcut 字段、数字金额、位置对象、派生事件 ID 与幂等重试 |
-| frontend tests | 6 个文件，21/21 通过 |
+| frontend tests | 7 个文件，23/23 通过 |
 | 本地 Playwright 核心流程 | 4/4 通过；按项目/视觉证据用途有意跳过 6 项 |
 | 远程 Playwright | 视觉捕获 2/2；核心桌面/手机 2/2；额外 smoke 3/3 通过。首次远程运行发现并修复商户末尾数字误截断 |
 | production build | Worker 141 modules、client 2440 modules；成功 |
@@ -89,6 +89,13 @@
 - Shortcut adapter 现支持解包一层 `交易信息`、`交易資訊`、`交易资料`、`交易資料`、`transaction`、`transaction_info` 或 `transactionInfo` 对象；标准顶层字段仍优先，未知深层结构不会递归展开。
 - Worker 集成测试使用与真机相同的 `交易信息 → 字典` 结构，验证 `HK$10.25`、商户、用途、卡片、GMT+8 时间和多行位置均正确进入统一导入管线；同时验证顶层 `currency` 优先于嵌套 `币种`。Worker integration 6/6 通过。
 - 自动部署脚本复跑 lint、typecheck、unit 21/21、Worker integration 6/6、frontend 21/21、build 与 publication check 后成功发布；远程 D1 无待执行 migration，首页、health 与 SPA deep link smoke 通过。远程验证没有使用或写入用户真实交易，也没有读取 Shortcut Token。
+
+## Shortcut 字符串字典兼容
+
+- 2026-08-13：使用 Cloudflare 实时 tail 接收用户的空输入复现，脱敏结构确认真机发送的是 `顶层 JSON → 交易信息:string`，而不是真正的嵌套 JSON object。日志只记录已知字段名和值类型，未记录金额、商户、位置或 Token。
+- Adapter 现兼容包装字段内的 JSON 字符串与 Shortcuts 原生键值文本；只提取白名单交易字段，支持中英文冒号、等号、分号和跨行位置。标准顶层字段仍优先。
+- 新增单元诊断测试保证日志不包含交易值；Worker 集成测试分别覆盖嵌套 object、序列化 JSON 和原生键值文本，包括金额、时间与多行位置的实际持久化结果。
+- 完整 `deploy:current` 通过：lint、typecheck、unit 23/23、Worker integration 6/6、frontend 23/23、production build 和 publication check；远程 D1 无待执行 migration，生产首页、D1 health 与 SPA deep link smoke 通过。部署后两次空输入均被新 adapter 确认为 JSON 字符串并识别出金额、商户、卡片、时间、交易名称和位置；因金额为空而按设计拒绝，未写入 D1。
 
 ## 最终状态与尚未完成
 

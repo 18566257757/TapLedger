@@ -1,5 +1,21 @@
 type JsonRecord = Record<string, unknown>
 
+const SHORTCUT_WRAPPER_KEYS = [
+  'transaction', 'transaction_info', 'transactionInfo', '交易信息', '交易資訊', '交易资料', '交易資料',
+] as const
+
+const SHORTCUT_FIELD_KEYS = [
+  'schema_version', '版本', '架构版本', '架構版本',
+  'client_event_id', '事件ID', '事件 ID', '客户端事件ID', '客户端事件 ID', '客戶端事件ID', '客戶端事件 ID',
+  'amount', '金额', '金額', 'currency', '币种', '幣種', '货币', '貨幣',
+  'merchant', '商户', '商戶', '商家', 'card', '卡片', '卡片或凭证', '卡片或憑證', '付款卡片',
+  'transaction_date', '交易时间', '交易時間', '时间', '時間', '日期',
+  'captured_at', '捕获时间', '擷取時間', '记录时间', '記錄時間',
+  'purpose', '交易名称', '交易名稱', '用途', '目的',
+  'location_name', '位置名称', '位置名稱', '位置', '地点', '地點',
+  'latitude', '纬度', '緯度', 'longitude', '经度', '經度', 'source', '来源', '來源',
+] as const
+
 const CURRENCY_ALIASES: Readonly<Record<string, string>> = {
   港币: 'HKD',
   港幣: 'HKD',
@@ -20,6 +36,69 @@ const CURRENCY_ALIASES: Readonly<Record<string, string>> = {
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+type SerializedRecordFormat = 'json' | 'key_value_text'
+
+function stripOuterQuotes(value: string): string {
+  const trimmed = value.trim().replace(/,$/u, '').trim()
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (typeof parsed === 'string') return parsed
+    } catch {
+      return trimmed.slice(1, -1)
+    }
+  }
+  if ((trimmed.startsWith("'") && trimmed.endsWith("'")) || (trimmed.startsWith('“') && trimmed.endsWith('”'))) {
+    return trimmed.slice(1, -1)
+  }
+  return trimmed
+}
+
+function knownShortcutKey(value: string): string | undefined {
+  const normalized = value.normalize('NFKC').trim().replace(/^["'“”‘’]+|["'“”‘’]+$/gu, '').trim()
+  return SHORTCUT_FIELD_KEYS.find((key) => key.normalize('NFKC') === normalized)
+}
+
+/**
+ * iOS Shortcuts can serialize a Dictionary magic variable as either JSON text
+ * or its line/semicolon-delimited key-value description. Only known transaction
+ * fields are accepted from the latter form.
+ */
+function parseSerializedRecord(value: unknown): { format: SerializedRecordFormat; record: JsonRecord } | undefined {
+  if (typeof value !== 'string') return undefined
+  const raw = value.trim()
+  if (!raw) return undefined
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (isRecord(parsed)) return { format: 'json', record: parsed }
+  } catch {
+    // Fall through to the native Shortcuts dictionary description format.
+  }
+
+  const contents = raw.startsWith('{') && raw.endsWith('}') ? raw.slice(1, -1) : raw
+  const record: JsonRecord = {}
+  let previousKey: string | undefined
+  for (const segment of contents.split(/\r?\n|;/u)) {
+    const line = segment.trim()
+    if (!line || line === '{' || line === '}') continue
+    const match = /^(.+?)\s*(?::|：|=)\s*(.*)$/u.exec(line)
+    const key = match ? knownShortcutKey(match[1]) : undefined
+    if (match && key) {
+      record[key] = stripOuterQuotes(match[2])
+      previousKey = key
+      continue
+    }
+    if (previousKey && typeof record[previousKey] === 'string') {
+      record[previousKey] = `${record[previousKey]}\n${stripOuterQuotes(line)}`
+    }
+  }
+  for (const [key, parsedValue] of Object.entries(record)) {
+    if (typeof parsedValue === 'string') record[key] = stripOuterQuotes(parsedValue)
+  }
+  return Object.keys(record).length > 0 ? { format: 'key_value_text', record } : undefined
 }
 
 function first(record: JsonRecord, canonical: string, aliases: readonly string[]): unknown {
@@ -94,16 +173,50 @@ function assign(record: JsonRecord, key: string, value: unknown): void {
   if (value !== undefined) record[key] = value
 }
 
+function valueType(value: unknown): 'array' | 'boolean' | 'null' | 'number' | 'object' | 'string' | 'undefined' {
+  if (value === null) return 'null'
+  if (Array.isArray(value)) return 'array'
+  return typeof value as 'boolean' | 'number' | 'object' | 'string' | 'undefined'
+}
+
+function recognizedTypes(record: JsonRecord, keys: readonly string[]): string[] {
+  return keys.filter((key) => Object.hasOwn(record, key)).map((key) => `${key}:${valueType(record[key])}`)
+}
+
+/** Returns field names and value types only. No transaction values are included. */
+export function describeShortcutPayloadShape(input: unknown) {
+  if (!isRecord(input)) return { body_type: valueType(input), top_level_recognized: [], wrappers: [] }
+  const knownTopLevel = new Set<string>([...SHORTCUT_WRAPPER_KEYS, ...SHORTCUT_FIELD_KEYS])
+  const wrappers = SHORTCUT_WRAPPER_KEYS.filter((key) => Object.hasOwn(input, key)).map((key) => {
+    const wrapper = input[key]
+    const serialized = parseSerializedRecord(wrapper)
+    const record = isRecord(wrapper) ? wrapper : serialized?.record
+    if (!record) return { key, value_type: valueType(wrapper), serialization: 'unrecognized', recognized_fields: [], unknown_field_count: 0 }
+    return {
+      key,
+      value_type: valueType(wrapper),
+      serialization: serialized?.format ?? 'object',
+      recognized_fields: recognizedTypes(record, SHORTCUT_FIELD_KEYS),
+      unknown_field_count: Object.keys(record).filter((nestedKey) => !SHORTCUT_FIELD_KEYS.includes(nestedKey as never)).length,
+    }
+  })
+  return {
+    body_type: 'object' as const,
+    top_level_recognized: recognizedTypes(input, SHORTCUT_FIELD_KEYS),
+    wrappers,
+    unknown_top_level_count: Object.keys(input).filter((key) => !knownTopLevel.has(key)).length,
+  }
+}
+
 /**
  * Accepts the canonical public API contract plus localized iPhone Shortcut
  * dictionary labels. Canonical English keys always take precedence.
  */
 export function adaptShortcutPayload(input: unknown): unknown {
   if (!isRecord(input)) return input
-  const nested = first(input, 'transaction', [
-    'transaction_info', 'transactionInfo', '交易信息', '交易資訊', '交易资料', '交易資料',
-  ])
-  const payload: JsonRecord = isRecord(nested) ? { ...nested, ...input } : input
+  const nested = first(input, SHORTCUT_WRAPPER_KEYS[0], SHORTCUT_WRAPPER_KEYS.slice(1))
+  const nestedRecord = isRecord(nested) ? nested : parseSerializedRecord(nested)?.record
+  const payload: JsonRecord = nestedRecord ? { ...nestedRecord, ...input } : input
   const adapted: JsonRecord = { ...payload }
   const rawAmount = first(payload, 'amount', ['金额', '金額'])
   const rawLocation = first(payload, 'location_name', ['位置名称', '位置名稱', '位置', '地点', '地點'])

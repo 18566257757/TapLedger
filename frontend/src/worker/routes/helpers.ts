@@ -3,9 +3,13 @@ import type { ZodType } from 'zod'
 import type { AppEnvironment } from '../types'
 import { HttpError, readJson, validationMessage } from '../utils/http'
 
-export async function parseBody<T>(c: Context<AppEnvironment>, schema: ZodType<T>): Promise<T> {
-  const result = schema.safeParse(await readJson(c))
-  if (!result.success) throw new HttpError(422, validationMessage(result.error))
+export async function parseBody<T>(c: Context<AppEnvironment>, schema: ZodType<T>, onValidationFailure?: (body: unknown) => void): Promise<T> {
+  const body = await readJson(c)
+  const result = schema.safeParse(body)
+  if (!result.success) {
+    onValidationFailure?.(body)
+    throw new HttpError(422, validationMessage(result.error))
+  }
   return result.data
 }
 

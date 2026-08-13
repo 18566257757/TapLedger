@@ -286,9 +286,32 @@ describe('TapLedger Worker API with D1', () => {
     expect(nestedShortcutFormat.status, await nestedShortcutFormat.clone().text()).toBe(200)
     expect(await nestedShortcutFormat.json()).toMatchObject({ success: true, duplicate: false })
 
+    const serializedJsonShortcutFormat = await request('/api/v1/shortcut/transactions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        交易信息: JSON.stringify({
+          事件ID: 'localized-serialized-json-format',
+          金额: 'HK$11.50',
+          商户: '字符串 JSON 便利店',
+          时间: '2026/8/13 GMT+8 15:30:00',
+        }),
+      }),
+    })
+    expect(serializedJsonShortcutFormat.status, await serializedJsonShortcutFormat.clone().text()).toBe(200)
+
+    const serializedTextShortcutFormat = await request('/api/v1/shortcut/transactions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        交易信息: '{\n事件ID = "localized-serialized-text-format";\n金额 = "HK$12.75";\n商户 = "字符串文本便利店";\n时间 = "2026/8/13 GMT+8 15:40:00";\n位置 = "测试区\n测试路";\n}',
+      }),
+    })
+    expect(serializedTextShortcutFormat.status, await serializedTextShortcutFormat.clone().text()).toBe(200)
+
     const list = await request('/api/v1/transactions', {}, state)
     const body = await list.json<{ total: number; items: Array<Record<string, unknown>> }>()
-    expect(body.total).toBe(3)
+    expect(body.total).toBe(5)
     const generated = body.items.find((item) => String(item.client_event_id).startsWith('shortcut-generated-'))
     expect(generated).toMatchObject({
       amount: '8.00',
@@ -316,6 +339,17 @@ describe('TapLedger Worker API with D1', () => {
       purpose: '嵌套钱包交易',
       transaction_date: '2026-08-13T07:20:00.000Z',
       location_name: '嵌套测试地区\n嵌套测试道路',
+    })
+    expect(body.items.find((item) => item.client_event_id === 'localized-serialized-json-format')).toMatchObject({
+      amount: '11.50',
+      merchant_raw: '字符串 JSON 便利店',
+      transaction_date: '2026-08-13T07:30:00.000Z',
+    })
+    expect(body.items.find((item) => item.client_event_id === 'localized-serialized-text-format')).toMatchObject({
+      amount: '12.75',
+      merchant_raw: '字符串文本便利店',
+      transaction_date: '2026-08-13T07:40:00.000Z',
+      location_name: '测试区\n测试路',
     })
   }, 30_000)
 

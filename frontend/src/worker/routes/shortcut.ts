@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { describeShortcutPayloadShape } from '../adapters/shortcutPayload'
 import { requireShortcutToken } from '../middleware/auth'
 import { shortcutBatchSchema, shortcutTransactionSchema } from '../schemas'
 import { TransactionService } from '../services/transactionService'
@@ -16,13 +17,17 @@ function response(result: IngestionResult) {
   }
 }
 
+function logValidationShape(body: unknown) {
+  console.warn('Shortcut payload validation rejected', JSON.stringify(describeShortcutPayloadShape(body)))
+}
+
 export const shortcutRoutes = new Hono<AppEnvironment>()
 shortcutRoutes.use('/shortcut/*', requireShortcutToken)
 
 shortcutRoutes.post('/shortcut/test', (c) => c.json({ success: true }))
 
 shortcutRoutes.post('/shortcut/transactions', async (c) => {
-  const payload = await parseBody(c, shortcutTransactionSchema)
+  const payload = await parseBody(c, shortcutTransactionSchema, logValidationShape)
   return c.json(response(await new TransactionService(c.env.DB).ingestShortcut(payload)))
 })
 
@@ -39,6 +44,6 @@ shortcutRoutes.post('/shortcut/transactions/batch', async (c) => {
 })
 
 shortcutRoutes.post('/shortcut/simulate', async (c) => {
-  const payload = await parseBody(c, shortcutTransactionSchema)
+  const payload = await parseBody(c, shortcutTransactionSchema, logValidationShape)
   return c.json(response(await new TransactionService(c.env.DB).ingestShortcut(payload, 'simulator', 'shortcut-simulator')))
 })
