@@ -17,17 +17,21 @@ export class AnalyticsService {
       SELECT
         currency_code AS currency,
         SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor ELSE 0 END) AS net_spending_minor,
-        COUNT(*) AS transaction_count,
+        SUM(CASE WHEN type = 'income' THEN amount_minor ELSE 0 END) AS net_income_minor,
+        SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor,
+        COUNT(CASE WHEN type IN ('expense', 'refund') THEN 1 END) AS transaction_count,
         MAX(CASE WHEN type = 'expense' THEN amount_minor ELSE 0 END) AS largest_minor
       FROM ledger_transactions
       WHERE transaction_date >= ? AND transaction_date < ?
         AND is_excluded_from_analytics = 0
-        AND type IN ('expense', 'refund')
+        AND type IN ('expense', 'refund', 'income')
       GROUP BY currency_code
       ORDER BY currency_code
     `).bind(from, to).all<{
       currency: string
       net_spending_minor: number
+      net_income_minor: number
+      total_minor: number
       transaction_count: number
       largest_minor: number
     }>()

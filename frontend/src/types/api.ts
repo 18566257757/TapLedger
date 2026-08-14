@@ -84,6 +84,8 @@ export interface MerchantRule {
 export interface CurrencySummary {
   currency: string
   net_spending_minor: number
+  net_income_minor: number
+  total_minor: number
   transaction_count: number
   largest_minor: number
 }

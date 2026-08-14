@@ -118,6 +118,9 @@
 - lint、typecheck、unit/frontend 24/24、Worker integration 6/6、production build 和 publication check 通过；Playwright 16 项中 8 项通过、8 项按设备/视觉用途跳过，桌面与 iPhone 16 Pro 专项均验证切换成功且手机 `clientWidth/scrollWidth = 402/402`。
 - 应用内浏览器扩展阻止访问本机 `127.0.0.1:5174`，按指南回退到项目 Playwright；内存截图确认桌面深色主页净收入折线图、分类总额饼图、手机总额折线图和净收入空状态样式正常，切换阶段无控制台 error/warning。
 - 首次 `deploy:current` 因本次任务遗留的 Vite 进程锁定 Rolldown 本地文件而失败；只停止命令行明确指向当前项目的 PID `51192` 后重试成功。Cloudflare 认证正常、远程 D1 无待执行 migration，生产首页、health 与 SPA deep link smoke 通过。
+- 2026-08-14 用户复核发现主页切换只更新折线、顶部金额仍固定为净支出。已将 summary API 补齐净收入与总额字段，并让总览标题、金额、上月同比和折线统一读取当前指标；对应 Worker contract 与跨设备 Playwright 断言已补充。
+- 浏览器本地实测从净支出 `HK$1,342.55` 切换到净收入 `HK$0.00`、再切到总额 `HK$1,342.55`，标题、金额和折线 `aria-label` 均同步；浏览器控制台只有扩展自身错误，没有应用错误。桌面与 iPhone 专项 Playwright 2/2 通过，手机未发生横向溢出。
+- 完整 `deploy:current` 通过：lint、typecheck、unit/frontend 24/24、Worker integration 6/6、build、publication check、Cloudflare 认证、远程 D1 migration 检查和远程 smoke 全部成功；线上首页、health 与 `/insights` 分别返回 `200`。
 
 ## 最终状态与尚未完成
 

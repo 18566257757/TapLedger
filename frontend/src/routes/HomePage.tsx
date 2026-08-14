@@ -50,8 +50,10 @@ export function HomePage() {
   const primary = summary.data?.currencies[0]
   const chartCurrency = primary?.currency ?? 'HKD'
   const previous = previousSummary.data?.currencies.find((item) => item.currency === chartCurrency)
-  const changePercent = primary && previous?.net_spending_minor
-    ? Math.round(((primary.net_spending_minor - previous.net_spending_minor) / Math.abs(previous.net_spending_minor)) * 100)
+  const primaryMetricValue = primary ? analyticsMetricValue(primary, trendMetric) : 0
+  const previousMetricValue = previous ? analyticsMetricValue(previous, trendMetric) : 0
+  const changePercent = primary && previousMetricValue !== 0
+    ? Math.round(((primaryMetricValue - previousMetricValue) / Math.abs(previousMetricValue)) * 100)
     : null
   const trendMetricLabel = trendMetric === 'net_income' ? t('netIncome') : trendMetric === 'total' ? t('totalAmount') : t('netSpending')
   const chartData = useMemo(() => (trend.data?.items ?? []).filter((item) => item.currency === chartCurrency).map((item) => ({
@@ -84,7 +86,7 @@ export function HomePage() {
       <div className="home-overview">
         <section className="spending-overview">
           <div className="card-heading spending-heading">
-            <div><span>{t('netSpending')}</span><strong>{primary ? formatMoney(primary.net_spending_minor, primary.currency, locale) : formatMoney(0, 'HKD', locale)}</strong></div>
+            <div><span>{trendMetricLabel}</span><strong>{formatMoney(primaryMetricValue, chartCurrency, locale)}</strong></div>
             <Link className="mobile-chart-link" to="/insights" aria-label={t('insights')}><BarChart3 /></Link>
           </div>
           {changePercent !== null ? <p className={`period-change ${changePercent <= 0 ? 'lower' : 'higher'}`}>{changePercent <= 0 ? <ArrowDown /> : <ArrowUp />}{Math.abs(changePercent)}% {changePercent <= 0 ? t('lessThanLastMonth') : t('moreThanLastMonth')}</p> : <p className="period-change neutral">{t('noPreviousPeriod')}</p>}

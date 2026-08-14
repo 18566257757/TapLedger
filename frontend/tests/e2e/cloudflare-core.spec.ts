@@ -308,10 +308,30 @@ test('home line and category pie metrics switch without horizontal overflow', as
   }
 
   const homeMetric = page.getByRole('group', { name: 'Chart metric' })
+  const overviewLabel = page.locator('.spending-heading span')
+  const overviewAmount = page.locator('.spending-heading strong')
   await expect(homeMetric.getByRole('button')).toHaveCount(3)
+  await expect(overviewLabel).toHaveText('Net spending')
   await homeMetric.getByRole('button', { name: 'Net income' }).click()
   await expect(homeMetric.getByRole('button', { name: 'Net income' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(overviewLabel).toHaveText('Net income')
   await expect(page.locator('.chart-frame')).toHaveAttribute('aria-label', 'Monthly Net income chart')
+
+  const [year, month] = (await page.getByLabel('Select month').inputValue()).split('-').map(Number)
+  const from = new Date(Date.UTC(year, month - 1, 1)).toISOString()
+  const to = new Date(Date.UTC(year, month, 1)).toISOString()
+  const response = await page.request.get(`/api/v1/analytics/summary?date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`)
+  expect(response.ok()).toBe(true)
+  const result = await response.json() as { currencies: Array<{ currency: string; net_income_minor: number; total_minor: number }> }
+  const primary = result.currencies[0]
+  const money = (amountMinor: number, currency: string) => new Intl.NumberFormat('en', {
+    style: 'currency', currency, minimumFractionDigits: currency === 'JPY' ? 0 : 2, maximumFractionDigits: currency === 'JPY' ? 0 : 2,
+  }).format(amountMinor / (currency === 'JPY' ? 1 : 100))
+  await expect(overviewAmount).toHaveText(primary ? money(primary.net_income_minor, primary.currency) : money(0, 'HKD'))
+
+  await homeMetric.getByRole('button', { name: 'Total' }).click()
+  await expect(overviewLabel).toHaveText('Total')
+  await expect(overviewAmount).toHaveText(primary ? money(primary.total_minor, primary.currency) : money(0, 'HKD'))
   await assertWithinViewport(homeMetric)
 
   await page.goto('/insights')
