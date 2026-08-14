@@ -125,6 +125,9 @@
 - Worker contract 验证 `支出 100 - 退款 20 + 收入 500 = 总额 420`，仅支出 CNY 30 时总额为 `-30`。浏览器实测首页 `-HK$1,342.55`、负轴折线、2 个分类扇区和 `-HK$1,264.15` Tooltip 均正确；控制台无应用错误。
 - 新增饼图悬停回归首次因 SVG 容器拦截扇区中心指针而超时；测试改为悬停实际弧线后，桌面与 iPhone 专项 Playwright 2/2 通过。lint、typecheck、unit/frontend 24/24、Worker integration 6/6、build 与 publication check 通过。
 - `deploy:current` 重跑成功：Cloudflare 认证正常、远程 D1 无待执行 migration，生产 Worker 已更新；远程首页、D1 health 与 SPA deep link smoke 全部通过。
+- 2026-08-14 根据 iPhone 截图反馈，分析页顶部币种汇总卡片改为与分类饼图共用指标状态；标题、金额、笔数、最大单笔和平均值均随净支出、净收入、总额同步。summary API 补充收入/全部交易笔数与对应最大单笔，保留旧字段兼容。
+- 浏览器实测净支出 `HK$1,342.55 / 54 笔`、净收入 `HK$0.00 / 0 笔`、总额 `-HK$1,342.55 / 54 笔` 同步正确，控制台无应用错误；桌面与 iPhone 专项 Playwright 2/2 通过。
+- 完整 `deploy:current` 再次通过：lint、typecheck、unit/frontend 24/24、Worker integration 6/6、production build、publication check、Cloudflare 认证和远程 D1 migration 检查均成功；生产首页、`/api/v1/health` 与 `/insights` 均返回 `200`。
 
 ## 最终状态与尚未完成
 

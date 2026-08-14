@@ -100,11 +100,11 @@ describe('TapLedger Worker API with D1', () => {
 
     const summary = await request('/api/v1/analytics/summary?date_from=2026-08-11T00:00:00.000Z&date_to=2026-08-13T00:00:00.000Z', {}, state)
     expect(summary.status).toBe(200)
-    const summaryBody = await summary.json<{ multiple_currencies: boolean; currencies: Array<{ currency: string; net_spending_minor: number; net_income_minor: number; total_minor: number }> }>()
+    const summaryBody = await summary.json<{ multiple_currencies: boolean; currencies: Array<{ currency: string; net_spending_minor: number; net_income_minor: number; total_minor: number; transaction_count: number; net_income_transaction_count: number; total_transaction_count: number; largest_income_minor: number; largest_total_minor: number }> }>()
     expect(summaryBody.multiple_currencies).toBe(true)
     expect(Object.fromEntries(summaryBody.currencies.map((item) => [item.currency, item.net_spending_minor]))).toEqual({ CNY: 3000, HKD: 8000 })
-    expect(summaryBody.currencies.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 42000 })
-    expect(summaryBody.currencies.find((item) => item.currency === 'CNY')).toMatchObject({ net_spending_minor: 3000, net_income_minor: 0, total_minor: -3000 })
+    expect(summaryBody.currencies.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 42000, transaction_count: 2, net_income_transaction_count: 1, total_transaction_count: 3, largest_income_minor: 50000, largest_total_minor: 50000 })
+    expect(summaryBody.currencies.find((item) => item.currency === 'CNY')).toMatchObject({ net_spending_minor: 3000, net_income_minor: 0, total_minor: -3000, transaction_count: 1, net_income_transaction_count: 0, total_transaction_count: 1, largest_income_minor: 0, largest_total_minor: 3000 })
 
     const trendResponse = await request('/api/v1/analytics/trend?date_from=2026-08-11T00:00:00.000Z&date_to=2026-08-13T00:00:00.000Z', {}, state)
     expect(trendResponse.status).toBe(200)

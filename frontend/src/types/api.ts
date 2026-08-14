@@ -87,7 +87,11 @@ export interface CurrencySummary {
   net_income_minor: number
   total_minor: number
   transaction_count: number
+  net_income_transaction_count: number
+  total_transaction_count: number
   largest_minor: number
+  largest_income_minor: number
+  largest_total_minor: number
 }
 
 export interface AnalyticsSummary {

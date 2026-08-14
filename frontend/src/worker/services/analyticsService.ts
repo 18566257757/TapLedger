@@ -20,7 +20,11 @@ export class AnalyticsService {
         SUM(CASE WHEN type = 'income' THEN amount_minor ELSE 0 END) AS net_income_minor,
         SUM(CASE type WHEN 'expense' THEN -amount_minor WHEN 'refund' THEN amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor,
         COUNT(CASE WHEN type IN ('expense', 'refund') THEN 1 END) AS transaction_count,
-        MAX(CASE WHEN type = 'expense' THEN amount_minor ELSE 0 END) AS largest_minor
+        COUNT(CASE WHEN type = 'income' THEN 1 END) AS net_income_transaction_count,
+        COUNT(*) AS total_transaction_count,
+        MAX(CASE WHEN type = 'expense' THEN amount_minor ELSE 0 END) AS largest_minor,
+        MAX(CASE WHEN type = 'income' THEN amount_minor ELSE 0 END) AS largest_income_minor,
+        MAX(amount_minor) AS largest_total_minor
       FROM ledger_transactions
       WHERE transaction_date >= ? AND transaction_date < ?
         AND is_excluded_from_analytics = 0
@@ -33,7 +37,11 @@ export class AnalyticsService {
       net_income_minor: number
       total_minor: number
       transaction_count: number
+      net_income_transaction_count: number
+      total_transaction_count: number
       largest_minor: number
+      largest_income_minor: number
+      largest_total_minor: number
     }>()
     return { multiple_currencies: rows.results.length > 1, currencies: rows.results }
   }

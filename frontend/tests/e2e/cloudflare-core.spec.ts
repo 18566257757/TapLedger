@@ -336,10 +336,13 @@ test('home line and category pie metrics switch without horizontal overflow', as
 
   await page.goto('/insights')
   const categoryCard = page.locator('.insight-card').filter({ has: page.getByRole('heading', { name: 'By category' }) })
+  const summaryCard = page.locator('.metric-card').first()
   const categoryMetric = categoryCard.getByRole('group', { name: 'Chart metric' })
   await expect(categoryMetric.getByRole('button')).toHaveCount(3)
   await categoryMetric.getByRole('button', { name: 'Total' }).click()
   await expect(categoryMetric.getByRole('button', { name: 'Total' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(summaryCard.locator('span')).toContainText('Total')
+  await expect(summaryCard.locator('strong')).toHaveText(primary ? money(primary.total_minor, primary.currency) : money(0, 'HKD'))
   await expect(categoryCard.getByText('Signed cash flow by category: income positive, spending negative.')).toBeVisible()
   const signedSector = categoryCard.locator('.recharts-sector').first()
   await expect(signedSector).toBeVisible()

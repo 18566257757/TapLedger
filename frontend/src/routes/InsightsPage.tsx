@@ -8,7 +8,7 @@ import { analyticsMetricValue } from '../lib/analytics'
 import { formatMoney, monthRange } from '../lib/format'
 import { useLocale } from '../app/LocaleProvider'
 import { ChartMetricSwitch } from '../components/ChartMetricSwitch'
-import type { AnalyticsMetric } from '../types/api'
+import type { AnalyticsMetric, CurrencySummary } from '../types/api'
 
 const palette = ['#635bff', '#20a17f', '#f7a850', '#e06c75', '#6087d8', '#9a72c7']
 type Period = 'day' | 'month' | 'year' | 'custom'
@@ -62,14 +62,18 @@ export function InsightsPage() {
   const merchantData = (merchants.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 8).map((item) => ({ name: item.label, displayName: compactChartLabel(item.label), value: item.amount_minor }))
   const methodData = (paymentMethods.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ ...item, label: item.label === 'Unmapped' ? t('unmapped') : item.label }))
   const categoryDescription = categoryMetric === 'net_income' ? t('whereMoneyCameFrom') : categoryMetric === 'total' ? t('whereTotalMoved') : t('whereMoneyWent')
+  const summaryMetricLabel = categoryMetric === 'net_income' ? t('netIncome') : categoryMetric === 'total' ? t('totalAmount') : t('netSpending')
 
   return (
     <div className="page">
       <header className="page-heading insights-heading"><div><p className="eyebrow">{t('analytics')}</p><h1>{t('insights')}</h1><p>{t('insightsSubtitle')}</p></div><div className="date-range"><label className="period-field">{t('period')}<select value={period} onChange={(event) => selectPeriod(event.target.value as Period)}><option value="day">{t('day')}</option><option value="month">{t('month')}</option><option value="year">{t('year')}</option><option value="custom">{t('custom')}</option></select></label><label>{t('from')}<input type="date" value={from} onChange={(event) => { setPeriod('custom'); setFrom(event.target.value) }} /></label><label>{t('to')}<input type="date" value={to} onChange={(event) => { setPeriod('custom'); setTo(event.target.value) }} /></label></div></header>
       {summary.data?.multiple_currencies ? <div className="info-banner">{t('multipleCurrencies')}</div> : null}
       <div className="metric-grid">
-        {(summary.data?.currencies ?? []).map((item) => <article className="card metric-card" key={item.currency}><span>{item.currency} {t('netSpending')}</span><strong>{formatMoney(item.net_spending_minor, item.currency, locale)}</strong><small>{item.transaction_count} {t('transactionsCount')} · {t('largest')} {formatMoney(item.largest_minor, item.currency, locale)} · {t('average')} {formatMoney(item.transaction_count ? Math.round(item.net_spending_minor / item.transaction_count) : 0, item.currency, locale)}</small></article>)}
-        {!summary.data?.currencies.length ? <article className="card metric-card"><span>{t('netSpending')}</span><strong>{formatMoney(0, currency, locale)}</strong><small>{t('noActivityPeriod')}</small></article> : null}
+        {(summary.data?.currencies ?? []).map((item) => {
+          const stats = currencyMetricStats(item, categoryMetric)
+          return <article className="card metric-card" key={item.currency}><span>{item.currency} {summaryMetricLabel}</span><strong>{formatMoney(stats.value, item.currency, locale)}</strong><small>{stats.count} {t('transactionsCount')} · {t('largest')} {formatMoney(stats.largest, item.currency, locale)} · {t('average')} {formatMoney(stats.average, item.currency, locale)}</small></article>
+        })}
+        {!summary.data?.currencies.length ? <article className="card metric-card"><span>{summaryMetricLabel}</span><strong>{formatMoney(0, currency, locale)}</strong><small>{t('noActivityPeriod')}</small></article> : null}
       </div>
       <div className="insights-grid">
         <section className="card insight-card"><div className="section-title metric-section-title"><div><h2>{t('byCategory')}</h2><p>{categoryDescription}</p></div><ChartMetricSwitch value={categoryMetric} onChange={setCategoryMetric} /></div>{categoryData.length ? <div className="insight-chart"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={64} outerRadius={98} paddingAngle={3} isAnimationActive={false}>{categoryData.map((_, index) => <Cell key={index} fill={palette[index % palette.length]} />)}</Pie><Tooltip cursor={false} content={(props) => <MoneyTooltip {...props} currency={currency} locale={locale} />} /></PieChart></ResponsiveContainer></div> : <ChartEmpty />}</section>
@@ -78,6 +82,13 @@ export function InsightsPage() {
       <section className="card breakdown-card"><div className="section-title"><div><h2>{t('paymentMethods')}</h2><p>{t('allocation')}</p></div></div>{methodData.length ? methodData.map((item, index) => <div className="breakdown-row" key={`${item.currency}-${item.label}`}><span><i style={{ background: palette[index % palette.length] }} />{item.label}</span><strong>{formatMoney(item.amount_minor, item.currency, locale)}</strong></div>) : <ChartEmpty />}</section>
     </div>
   )
+}
+
+function currencyMetricStats(item: CurrencySummary, metric: AnalyticsMetric) {
+  const value = analyticsMetricValue(item, metric)
+  const count = metric === 'net_income' ? item.net_income_transaction_count : metric === 'total' ? item.total_transaction_count : item.transaction_count
+  const largest = metric === 'net_income' ? item.largest_income_minor : metric === 'total' ? item.largest_total_minor : item.largest_minor
+  return { value, count, largest, average: count ? Math.round(value / count) : 0 }
 }
 
 function MoneyTooltip({ active, payload, label, currency, locale }: TooltipContentProps & { currency: string; locale: string }) {
