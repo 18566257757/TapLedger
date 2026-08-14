@@ -121,6 +121,10 @@
 - 2026-08-14 用户复核发现主页切换只更新折线、顶部金额仍固定为净支出。已将 summary API 补齐净收入与总额字段，并让总览标题、金额、上月同比和折线统一读取当前指标；对应 Worker contract 与跨设备 Playwright 断言已补充。
 - 浏览器本地实测从净支出 `HK$1,342.55` 切换到净收入 `HK$0.00`、再切到总额 `HK$1,342.55`，标题、金额和折线 `aria-label` 均同步；浏览器控制台只有扩展自身错误，没有应用错误。桌面与 iPhone 专项 Playwright 2/2 通过，手机未发生横向溢出。
 - 完整 `deploy:current` 通过：lint、typecheck、unit/frontend 24/24、Worker integration 6/6、build、publication check、Cloudflare 认证、远程 D1 migration 检查和远程 smoke 全部成功；线上首页、health 与 `/insights` 分别返回 `200`。
+- 2026-08-14 用户澄清“总额”必须按带符号现金流计算：支出为负、退款为正、收入为正。Worker summary/trend/breakdown 已统一改为该规则；分类饼图按绝对值分配扇区、Tooltip 保留正负号，中英繁说明同步更新。
+- Worker contract 验证 `支出 100 - 退款 20 + 收入 500 = 总额 420`，仅支出 CNY 30 时总额为 `-30`。浏览器实测首页 `-HK$1,342.55`、负轴折线、2 个分类扇区和 `-HK$1,264.15` Tooltip 均正确；控制台无应用错误。
+- 新增饼图悬停回归首次因 SVG 容器拦截扇区中心指针而超时；测试改为悬停实际弧线后，桌面与 iPhone 专项 Playwright 2/2 通过。lint、typecheck、unit/frontend 24/24、Worker integration 6/6、build 与 publication check 通过。
+- `deploy:current` 重跑成功：Cloudflare 认证正常、远程 D1 无待执行 migration，生产 Worker 已更新；远程首页、D1 health 与 SPA deep link smoke 全部通过。
 
 ## 最终状态与尚未完成
 

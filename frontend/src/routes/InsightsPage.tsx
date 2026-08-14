@@ -52,7 +52,10 @@ export function InsightsPage() {
   const currency = summary.data?.currencies[0]?.currency ?? 'HKD'
   const categoryData = useMemo(() => (categories.data?.items ?? [])
     .filter((item) => item.currency === currency)
-    .map((item) => ({ name: categoryLabel(item.label), value: analyticsMetricValue(item, categoryMetric) }))
+    .map((item) => {
+      const signedValue = analyticsMetricValue(item, categoryMetric)
+      return { name: categoryLabel(item.label), value: Math.abs(signedValue), signedValue }
+    })
     .filter((item) => item.value > 0)
     .sort((left, right) => right.value - left.value)
     .slice(0, 6), [categories.data?.items, categoryLabel, categoryMetric, currency])
@@ -81,7 +84,8 @@ function MoneyTooltip({ active, payload, label, currency, locale }: TooltipConte
   const item = payload?.[0]
   if (!active || !item || item.value === undefined) return null
   const itemLabel = String(item.payload?.name ?? item.name ?? label ?? '')
-  return <div className="chart-tooltip"><span><i style={{ background: item.color ?? 'var(--accent)' }} /><b>{itemLabel}</b></span><strong>{formatMoney(Number(item.value), currency, locale)}</strong></div>
+  const displayValue = typeof item.payload?.signedValue === 'number' ? item.payload.signedValue : Number(item.value)
+  return <div className="chart-tooltip"><span><i style={{ background: item.color ?? 'var(--accent)' }} /><b>{itemLabel}</b></span><strong>{formatMoney(displayValue, currency, locale)}</strong></div>
 }
 
 function ChartEmpty() {

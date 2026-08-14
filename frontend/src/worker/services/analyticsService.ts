@@ -18,7 +18,7 @@ export class AnalyticsService {
         currency_code AS currency,
         SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor ELSE 0 END) AS net_spending_minor,
         SUM(CASE WHEN type = 'income' THEN amount_minor ELSE 0 END) AS net_income_minor,
-        SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor,
+        SUM(CASE type WHEN 'expense' THEN -amount_minor WHEN 'refund' THEN amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor,
         COUNT(CASE WHEN type IN ('expense', 'refund') THEN 1 END) AS transaction_count,
         MAX(CASE WHEN type = 'expense' THEN amount_minor ELSE 0 END) AS largest_minor
       FROM ledger_transactions
@@ -47,7 +47,7 @@ export class AnalyticsService {
         SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor ELSE 0 END) AS amount_minor,
         SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor ELSE 0 END) AS net_spending_minor,
         SUM(CASE WHEN type = 'income' THEN amount_minor ELSE 0 END) AS net_income_minor,
-        SUM(CASE type WHEN 'expense' THEN amount_minor WHEN 'refund' THEN -amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor
+        SUM(CASE type WHEN 'expense' THEN -amount_minor WHEN 'refund' THEN amount_minor WHEN 'income' THEN amount_minor ELSE 0 END) AS total_minor
       FROM ledger_transactions
       WHERE transaction_date >= ? AND transaction_date < ?
         AND is_excluded_from_analytics = 0
@@ -72,7 +72,7 @@ export class AnalyticsService {
         SUM(CASE t.type WHEN 'expense' THEN t.amount_minor WHEN 'refund' THEN -t.amount_minor ELSE 0 END) AS amount_minor,
         SUM(CASE t.type WHEN 'expense' THEN t.amount_minor WHEN 'refund' THEN -t.amount_minor ELSE 0 END) AS net_spending_minor,
         SUM(CASE WHEN t.type = 'income' THEN t.amount_minor ELSE 0 END) AS net_income_minor,
-        SUM(CASE t.type WHEN 'expense' THEN t.amount_minor WHEN 'refund' THEN -t.amount_minor WHEN 'income' THEN t.amount_minor ELSE 0 END) AS total_minor
+        SUM(CASE t.type WHEN 'expense' THEN -t.amount_minor WHEN 'refund' THEN t.amount_minor WHEN 'income' THEN t.amount_minor ELSE 0 END) AS total_minor
       FROM ledger_transactions t
       LEFT JOIN categories c ON c.id = t.category_id
       LEFT JOIN payment_methods p ON p.id = t.payment_method_id

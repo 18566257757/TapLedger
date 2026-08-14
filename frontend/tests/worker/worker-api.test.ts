@@ -103,17 +103,20 @@ describe('TapLedger Worker API with D1', () => {
     const summaryBody = await summary.json<{ multiple_currencies: boolean; currencies: Array<{ currency: string; net_spending_minor: number; net_income_minor: number; total_minor: number }> }>()
     expect(summaryBody.multiple_currencies).toBe(true)
     expect(Object.fromEntries(summaryBody.currencies.map((item) => [item.currency, item.net_spending_minor]))).toEqual({ CNY: 3000, HKD: 8000 })
-    expect(summaryBody.currencies.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 58000 })
+    expect(summaryBody.currencies.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 42000 })
+    expect(summaryBody.currencies.find((item) => item.currency === 'CNY')).toMatchObject({ net_spending_minor: 3000, net_income_minor: 0, total_minor: -3000 })
 
     const trendResponse = await request('/api/v1/analytics/trend?date_from=2026-08-11T00:00:00.000Z&date_to=2026-08-13T00:00:00.000Z', {}, state)
     expect(trendResponse.status).toBe(200)
     const trendBody = await trendResponse.json<{ items: Array<{ currency: string; net_spending_minor: number; net_income_minor: number; total_minor: number }> }>()
-    expect(trendBody.items.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 58000 })
+    expect(trendBody.items.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 42000 })
+    expect(trendBody.items.find((item) => item.currency === 'CNY')).toMatchObject({ net_spending_minor: 3000, net_income_minor: 0, total_minor: -3000 })
 
     const categoryResponse = await request('/api/v1/analytics/categories?date_from=2026-08-11T00:00:00.000Z&date_to=2026-08-13T00:00:00.000Z', {}, state)
     expect(categoryResponse.status).toBe(200)
     const categoryBody = await categoryResponse.json<{ items: Array<{ currency: string; net_spending_minor: number; net_income_minor: number; total_minor: number }> }>()
-    expect(categoryBody.items.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 58000 })
+    expect(categoryBody.items.find((item) => item.currency === 'HKD')).toMatchObject({ net_spending_minor: 8000, net_income_minor: 50000, total_minor: 42000 })
+    expect(categoryBody.items.find((item) => item.currency === 'CNY')).toMatchObject({ net_spending_minor: 3000, net_income_minor: 0, total_minor: -3000 })
 
     const tokenResponse = await mutate('/api/v1/automation/token/rotate', undefined, state)
     const token = (await tokenResponse.json<{ token: string }>()).token
