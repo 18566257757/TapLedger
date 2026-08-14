@@ -111,6 +111,14 @@
 - 规则只启用 `Restrict deletions` 与 `Block force pushes`；未启用 Pull Request、状态检查、签名提交或部署门禁，因此继续允许当前非强制的直接推送维护流程。
 - 在 GitHub 规则详情页复核为 Active、适用 1 个目标；仓库首页原有的 “branch isn't protected” 提示与 “Protect this branch” 入口均已消失。
 
+## 主页折线图与分类饼图指标切换
+
+- 2026-08-14：主页折线图和分析页分类饼图新增彼此独立的“净支出 / 净收入 / 总额”三段式切换，沿用现有深浅色、圆角、字体与响应式样式；中英繁三语文案和 `aria-pressed` 状态同步完成。
+- Worker 趋势与分类分析保持 `amount_minor = net_spending_minor` 兼容字段，并新增 `net_income_minor` 与 `total_minor`。净支出为支出减退款，净收入为收入，总额为两者相加；转账和调整仍不计入分析。
+- lint、typecheck、unit/frontend 24/24、Worker integration 6/6、production build 和 publication check 通过；Playwright 16 项中 8 项通过、8 项按设备/视觉用途跳过，桌面与 iPhone 16 Pro 专项均验证切换成功且手机 `clientWidth/scrollWidth = 402/402`。
+- 应用内浏览器扩展阻止访问本机 `127.0.0.1:5174`，按指南回退到项目 Playwright；内存截图确认桌面深色主页净收入折线图、分类总额饼图、手机总额折线图和净收入空状态样式正常，切换阶段无控制台 error/warning。
+- 首次 `deploy:current` 因本次任务遗留的 Vite 进程锁定 Rolldown 本地文件而失败；只停止命令行明确指向当前项目的 PID `51192` 后重试成功。Cloudflare 认证正常、远程 D1 无待执行 migration，生产首页、health 与 SPA deep link smoke 通过。
+
 ## 最终状态与尚未完成
 
 - Cloudflare OAuth、远程 D1 创建、三个 migration 文件、Worker 发布和远程 D1 读写已完成；首页、health、SPA 深链、首次设置、桌面/手机核心流程及远程视觉验证通过。

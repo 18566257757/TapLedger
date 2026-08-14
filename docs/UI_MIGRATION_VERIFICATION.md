@@ -96,3 +96,12 @@
 - iPhone 16 Pro WebKit `402 × 874` 实测：深色切换为浅色后根节点 `data-theme` 从 `dark` 变为 `light`，刷新后仍为 `light`；两种状态下 `clientWidth/scrollWidth` 均为 `402/402`，控制台无 error 或 warning。
 - 截图证据保存在被 Git 忽略的 `frontend/test-results/mobile-theme-dark.png` 与 `frontend/test-results/mobile-theme-light.png`，未将当前本地实例数据发布到公共仓库。
 - Cloudflare 部署后线上 CSS 已切换为 `index-BnW11hX8.css`，Settings 代码块返回 `200`；远程文件已核验包含 `mobile-theme-preference`、`aria-pressed` 与主题 setter。远程首页、health 和 SPA deep link smoke 通过。
+
+## 2026-08-14 图表指标切换复核
+
+- 用户明确要求主页折线图和分析页分类饼图支持“净支出 / 净收入 / 总额”切换；这是有意新增的图表交互，未改变页面路由、导航、卡片顺序、图表库、颜色、字体或现有总览指标。
+- 两个图表各自维护选择状态，使用相同的三段式控件与 `aria-pressed`；主页总览金额仍显示净支出，选择器只改变折线图，分类选择器只改变饼图及其说明。
+- 本地真实 Worker/D1 Playwright 共运行 16 项：8 项通过、8 项按桌面/手机或视觉基准用途跳过；新增专项在桌面 Chromium 与 iPhone 16 Pro WebKit `402 × 874` 均通过。
+- iPhone 16 Pro 专项实测主页和分析页 `clientWidth/scrollWidth` 均为 `402/402`，三个按钮全部位于视口内；指标切换后无控制台 error 或 warning。
+- 应用内浏览器连接被扩展阻止访问本机 `127.0.0.1:5174`，因此按前端测试指南回退到项目 Playwright；局部截图通过测试运行时内存直接返回，没有写入或提交实例数据截图。
+- Cloudflare 重新部署成功，远程 D1 无待执行 migration，首页、`/api/v1/health` 与 `/insights` SPA deep link smoke 全部通过。

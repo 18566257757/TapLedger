@@ -1,6 +1,7 @@
 export type TransactionType = 'expense' | 'income' | 'refund' | 'transfer' | 'adjustment'
 export type ReviewStatus = 'confirmed' | 'needs_review' | 'missing_information' | 'duplicate_candidate'
 export type TransactionSource = 'wallet_shortcut' | 'manual_pwa' | 'csv_import' | 'recurring' | 'simulator'
+export type AnalyticsMetric = 'net_spending' | 'net_income' | 'total'
 
 export interface User {
   id: string
@@ -96,12 +97,18 @@ export interface TrendPoint {
   currency: string
   date: string
   amount_minor: number
+  net_spending_minor: number
+  net_income_minor: number
+  total_minor: number
 }
 
 export interface BreakdownItem {
   currency: string
   label: string
   amount_minor: number
+  net_spending_minor: number
+  net_income_minor: number
+  total_minor: number
 }
 
 export interface DeploymentStatus {

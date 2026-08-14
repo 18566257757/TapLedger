@@ -98,8 +98,20 @@ test('real Worker/D1 core flow: CRUD, review, analytics, automation, exports and
   await page.goto('/insights')
   await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
   await expect(page.getByText('By category')).toBeVisible()
+  const categoryMetric = page.locator('.insight-card').filter({ has: page.getByRole('heading', { name: 'By category' }) }).getByRole('group', { name: 'Chart metric' })
+  await expect(categoryMetric.getByRole('button', { name: 'Net spending' })).toHaveAttribute('aria-pressed', 'true')
+  await categoryMetric.getByRole('button', { name: 'Total' }).click()
+  await expect(categoryMetric.getByRole('button', { name: 'Total' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Combined income and spending by category.')).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible()
+
+  await page.goto('/')
+  const homeMetric = page.getByRole('group', { name: 'Chart metric' })
+  await expect(homeMetric.getByRole('button', { name: 'Net spending' })).toHaveAttribute('aria-pressed', 'true')
+  await homeMetric.getByRole('button', { name: 'Net income' }).click()
+  await expect(homeMetric.getByRole('button', { name: 'Net income' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.chart-frame')).toHaveAttribute('aria-label', 'Monthly Net income chart')
 
   await page.goto('/transactions')
   await search.fill('Browser Core Merchant')
@@ -282,4 +294,33 @@ test('desktop setting cards preserve independent collapsed height', async ({ pag
   await expect(page.locator('details.setting-card[open]')).toHaveCount(1)
   expect(Math.round((await automationCard.boundingBox())?.height ?? 0)).toBe(Math.round(initialAutomationHeight))
   expect((await categoriesCard.boundingBox())?.height ?? 0).toBeGreaterThan(initialCategoriesHeight)
+})
+
+test('home line and category pie metrics switch without horizontal overflow', async ({ page }) => {
+  await authenticate(page)
+
+  const viewportWidth = page.viewportSize()?.width ?? 0
+  const assertWithinViewport = async (locator: ReturnType<Page['locator']>) => {
+    const box = await locator.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.x).toBeGreaterThanOrEqual(0)
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewportWidth)
+  }
+
+  const homeMetric = page.getByRole('group', { name: 'Chart metric' })
+  await expect(homeMetric.getByRole('button')).toHaveCount(3)
+  await homeMetric.getByRole('button', { name: 'Net income' }).click()
+  await expect(homeMetric.getByRole('button', { name: 'Net income' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.chart-frame')).toHaveAttribute('aria-label', 'Monthly Net income chart')
+  await assertWithinViewport(homeMetric)
+
+  await page.goto('/insights')
+  const categoryCard = page.locator('.insight-card').filter({ has: page.getByRole('heading', { name: 'By category' }) })
+  const categoryMetric = categoryCard.getByRole('group', { name: 'Chart metric' })
+  await expect(categoryMetric.getByRole('button')).toHaveCount(3)
+  await categoryMetric.getByRole('button', { name: 'Total' }).click()
+  await expect(categoryMetric.getByRole('button', { name: 'Total' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(categoryCard.getByText('Combined income and spending by category.')).toBeVisible()
+  await assertWithinViewport(categoryMetric)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(viewportWidth)
 })

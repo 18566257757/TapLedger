@@ -98,6 +98,10 @@ svg { width: 19px; height: 19px; stroke-width: 1.8; }
 .period-change svg { width: 17px; }
 .period-change.lower { color: var(--positive); }
 .period-change.higher { color: var(--danger); }
+.chart-metric-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; width: fit-content; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--subtle); }
+.chart-metric-switch button { min-height: 30px; padding: 0 10px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 620; cursor: pointer; white-space: nowrap; }
+.chart-metric-switch button.selected { color: var(--accent); background: var(--surface); box-shadow: 0 1px 4px rgb(18 24 40 / 8%); }
+.home-chart-metric { margin: 14px 0 -12px auto; }
 .chart-caption { margin: -3px 0 0; color: var(--muted); font-size: 13px; }
 .mobile-chart-link, .mobile-review-banner { display: none; }
 .review-rail { min-width: 0; padding-left: 44px; border-left: 1px solid var(--line); }
@@ -378,7 +382,9 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .mobile-chart-link { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 3px; border: 1px solid var(--accent); border-radius: 11px; color: var(--accent); text-decoration: none; }
   .mobile-chart-link svg { width: 21px; }
   .period-change { margin-top: 7px; }
-  .spending-overview .chart-frame { height: 160px; margin-top: 16px; }
+  .home-chart-metric { width: 100%; margin: 12px 0 -6px; }
+  .chart-metric-switch button { min-width: 0; padding: 0 6px; }
+  .spending-overview .chart-frame { height: 160px; margin-top: 12px; }
   .chart-caption { display: none; }
   .review-rail { display: none; }
   .mobile-review-banner { min-height: 52px; display: flex; align-items: center; justify-content: space-between; margin-top: 17px; padding: 0 14px; border: 1px solid color-mix(in srgb, var(--warning) 55%, var(--line)); border-radius: 12px; color: var(--text); text-decoration: none; font-size: 13px; font-weight: 650; }
@@ -452,6 +458,8 @@ code { overflow-wrap: anywhere; padding: 8px 10px; border-radius: 7px; color: va
   .page-heading:has(.date-range) { flex-direction: column; }
   .insights-grid, .settings-grid { gap: 14px; }
   .insight-card, .breakdown-card, .setting-card { padding: 20px; }
+  .metric-section-title { align-items: stretch; flex-direction: column; }
+  .metric-section-title .chart-metric-switch { width: 100%; }
   .review-item { align-items: stretch; flex-direction: column; padding: 21px; }
   .bulk-review { align-items: stretch; flex-direction: column; }
   .bulk-review select { width: 100%; }

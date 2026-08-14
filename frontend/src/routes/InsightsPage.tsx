@@ -4,8 +4,11 @@ import { BarChart3 } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { api } from '../lib/api'
+import { analyticsMetricValue } from '../lib/analytics'
 import { formatMoney, monthRange } from '../lib/format'
 import { useLocale } from '../app/LocaleProvider'
+import { ChartMetricSwitch } from '../components/ChartMetricSwitch'
+import type { AnalyticsMetric } from '../types/api'
 
 const palette = ['#635bff', '#20a17f', '#f7a850', '#e06c75', '#6087d8', '#9a72c7']
 type Period = 'day' | 'month' | 'year' | 'custom'
@@ -25,6 +28,7 @@ export function InsightsPage() {
   const [from, setFrom] = useState(current.from.slice(0, 10))
   const [to, setTo] = useState(dateInputValue(new Date()))
   const [period, setPeriod] = useState<Period>('month')
+  const [categoryMetric, setCategoryMetric] = useState<AnalyticsMetric>('net_spending')
 
   const selectPeriod = (value: Period) => {
     setPeriod(value)
@@ -46,9 +50,15 @@ export function InsightsPage() {
   ] })
   const [summary, categories, merchants, paymentMethods] = results
   const currency = summary.data?.currencies[0]?.currency ?? 'HKD'
-  const categoryData = (categories.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ name: categoryLabel(item.label), value: item.amount_minor }))
+  const categoryData = useMemo(() => (categories.data?.items ?? [])
+    .filter((item) => item.currency === currency)
+    .map((item) => ({ name: categoryLabel(item.label), value: analyticsMetricValue(item, categoryMetric) }))
+    .filter((item) => item.value > 0)
+    .sort((left, right) => right.value - left.value)
+    .slice(0, 6), [categories.data?.items, categoryLabel, categoryMetric, currency])
   const merchantData = (merchants.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 8).map((item) => ({ name: item.label, displayName: compactChartLabel(item.label), value: item.amount_minor }))
   const methodData = (paymentMethods.data?.items ?? []).filter((item) => item.currency === currency).slice(0, 6).map((item) => ({ ...item, label: item.label === 'Unmapped' ? t('unmapped') : item.label }))
+  const categoryDescription = categoryMetric === 'net_income' ? t('whereMoneyCameFrom') : categoryMetric === 'total' ? t('whereTotalMoved') : t('whereMoneyWent')
 
   return (
     <div className="page">
@@ -59,7 +69,7 @@ export function InsightsPage() {
         {!summary.data?.currencies.length ? <article className="card metric-card"><span>{t('netSpending')}</span><strong>{formatMoney(0, currency, locale)}</strong><small>{t('noActivityPeriod')}</small></article> : null}
       </div>
       <div className="insights-grid">
-        <section className="card insight-card"><div className="section-title"><div><h2>{t('byCategory')}</h2><p>{t('whereMoneyWent')}</p></div></div>{categoryData.length ? <div className="insight-chart"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={64} outerRadius={98} paddingAngle={3} isAnimationActive={false}>{categoryData.map((_, index) => <Cell key={index} fill={palette[index % palette.length]} />)}</Pie><Tooltip cursor={false} content={(props) => <MoneyTooltip {...props} currency={currency} locale={locale} />} /></PieChart></ResponsiveContainer></div> : <ChartEmpty />}</section>
+        <section className="card insight-card"><div className="section-title metric-section-title"><div><h2>{t('byCategory')}</h2><p>{categoryDescription}</p></div><ChartMetricSwitch value={categoryMetric} onChange={setCategoryMetric} /></div>{categoryData.length ? <div className="insight-chart"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={64} outerRadius={98} paddingAngle={3} isAnimationActive={false}>{categoryData.map((_, index) => <Cell key={index} fill={palette[index % palette.length]} />)}</Pie><Tooltip cursor={false} content={(props) => <MoneyTooltip {...props} currency={currency} locale={locale} />} /></PieChart></ResponsiveContainer></div> : <ChartEmpty />}</section>
         <section className="card insight-card"><div className="section-title"><div><h2>{t('topMerchants')}</h2><p>{t('highestDestinations')}</p></div></div>{merchantData.length ? <div className="insight-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={merchantData} layout="vertical" margin={{ left: 18 }}><CartesianGrid horizontal={false} stroke="var(--line)" /><XAxis type="number" hide /><YAxis type="category" dataKey="displayName" width={100} axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} /><Tooltip cursor={false} content={(props) => <MoneyTooltip {...props} currency={currency} locale={locale} />} /><Bar dataKey="value" fill="var(--accent)" radius={[0, 8, 8, 0]} isAnimationActive={false} /></BarChart></ResponsiveContainer></div> : <ChartEmpty />}</section>
       </div>
       <section className="card breakdown-card"><div className="section-title"><div><h2>{t('paymentMethods')}</h2><p>{t('allocation')}</p></div></div>{methodData.length ? methodData.map((item, index) => <div className="breakdown-row" key={`${item.currency}-${item.label}`}><span><i style={{ background: palette[index % palette.length] }} />{item.label}</span><strong>{formatMoney(item.amount_minor, item.currency, locale)}</strong></div>) : <ChartEmpty />}</section>

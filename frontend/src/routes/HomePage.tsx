@@ -5,12 +5,14 @@ import { Link } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAuth } from '../app/AuthProvider'
 import { useLocale } from '../app/LocaleProvider'
+import { ChartMetricSwitch } from '../components/ChartMetricSwitch'
 import { EmptyState } from '../components/EmptyState'
 import { TransactionEditor } from '../components/TransactionEditor'
 import { TransactionRow } from '../components/TransactionRow'
 import { api } from '../lib/api'
+import { analyticsMetricValue } from '../lib/analytics'
 import { formatMoney, monthRange } from '../lib/format'
-import type { Transaction } from '../types/api'
+import type { AnalyticsMetric, Transaction } from '../types/api'
 
 function greetingKey() {
   const hour = new Date().getHours()
@@ -35,6 +37,7 @@ export function HomePage() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editing, setEditing] = useState<Transaction | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(monthInputValue)
+  const [trendMetric, setTrendMetric] = useState<AnalyticsMetric>('net_spending')
   const selectedDate = useMemo(() => new Date(`${selectedMonth}-01T12:00:00`), [selectedMonth])
   const range = useMemo(() => monthRange(selectedDate, locale), [selectedDate, locale])
   const previousRange = useMemo(() => previousMonthRange(selectedDate, locale), [selectedDate, locale])
@@ -50,10 +53,11 @@ export function HomePage() {
   const changePercent = primary && previous?.net_spending_minor
     ? Math.round(((primary.net_spending_minor - previous.net_spending_minor) / Math.abs(previous.net_spending_minor)) * 100)
     : null
-  const chartData = (trend.data?.items ?? []).filter((item) => item.currency === chartCurrency).map((item) => ({
+  const trendMetricLabel = trendMetric === 'net_income' ? t('netIncome') : trendMetric === 'total' ? t('totalAmount') : t('netSpending')
+  const chartData = useMemo(() => (trend.data?.items ?? []).filter((item) => item.currency === chartCurrency).map((item) => ({
     date: new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(new Date(`${item.date}T00:00:00`)),
-    amount: item.amount_minor / (chartCurrency === 'JPY' ? 1 : 100),
-  }))
+    amount: analyticsMetricValue(item, trendMetric) / (chartCurrency === 'JPY' ? 1 : 100),
+  })), [chartCurrency, locale, trend.data?.items, trendMetric])
   const reviewItems = reviews.data ?? []
   const reviewSummary = [
     { label: t('uncategorizedTransactions'), count: reviewItems.filter((item) => item.review_status !== 'duplicate_candidate' && item.review_status !== 'missing_information' && (!item.category_id || item.category_name?.toLowerCase() === 'uncategorized')).length, icon: CircleAlert, tone: 'warning' },
@@ -85,7 +89,8 @@ export function HomePage() {
           </div>
           {changePercent !== null ? <p className={`period-change ${changePercent <= 0 ? 'lower' : 'higher'}`}>{changePercent <= 0 ? <ArrowDown /> : <ArrowUp />}{Math.abs(changePercent)}% {changePercent <= 0 ? t('lessThanLastMonth') : t('moreThanLastMonth')}</p> : <p className="period-change neutral">{t('noPreviousPeriod')}</p>}
           {summary.data?.multiple_currencies ? <p className="currency-note">{t('multipleCurrencies')}</p> : null}
-          <div className="chart-frame" aria-label={t('monthlyChart')}>
+          <ChartMetricSwitch value={trendMetric} onChange={setTrendMetric} className="home-chart-metric" />
+          <div className="chart-frame" aria-label={t('monthlyMetricChart', { metric: trendMetricLabel })}>
             {chartData.length ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 16, right: 12, left: -18, bottom: 2 }}>
@@ -98,7 +103,7 @@ export function HomePage() {
               </ResponsiveContainer>
             ) : <div className="chart-empty">{t('trendEmpty')}</div>}
           </div>
-          <p className="chart-caption">{t('spendingTrend')}</p>
+          <p className="chart-caption">{t('metricTrend', { metric: trendMetricLabel })}</p>
         </section>
 
         <aside className="review-rail">
